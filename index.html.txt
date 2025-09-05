@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حساب جرعة التخدير</title>
+<style>
+body { font-family: Arial; direction: rtl; text-align: right; background:#f0f2f5; padding:20px;}
+h1,h2{color:#333;}
+.container { max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+input,select,button,textarea{width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc;}
+button{background:#007bff;color:#fff;border:none;cursor:pointer;}
+button:hover{background:#0056b3;}
+#aiChatBox{height:200px; overflow-y:auto; background:#e9ecef; padding:10px; border-radius:5px;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>حساب جرعة التخدير</h1>
+<label>وزن المريض (كغ):</label>
+<input type="number" id="weight" placeholder="أدخل وزن المريض">
+<label>نوع الدواء:</label>
+<select id="drug">
+<option value="propofol">بروبوفول</option>
+<option value="midazolam">ميدازولام</option>
+<option value="fentanyl">فنتانيل</option>
+<option value="ketamine">كيتامين</option>
+</select>
+<button onclick="calculateDose()">احسب الجرعة</button>
+<h2>الجرعة المحسوبة: <span id="dose">-</span></h2>
+<hr>
+<h2>شات الذكاء الاصطناعي الطبي</h2>
+<div id="aiChatBox"></div>
+<textarea id="aiInput" placeholder="اكتب حالة المريض هنا..."></textarea>
+<button onclick="sendAIMessage()">أرسل</button>
+<hr>
+<button onclick="openAdminPanel()">لوحة التحكم (للمالك فقط)</button>
+</div>
+
+<div id="adminPanel" style="display:none;">
+<div class="container">
+<h1>لوحة التحكم</h1>
+<label>كلمة المرور:</label>
+<input type="password" id="adminPassword" placeholder="أدخل كلمة المرور">
+<button onclick="loginAdmin()">تسجيل الدخول</button>
+<div id="adminContent" style="display:none;">
+<h2>تعديل واجهة الموقع</h2>
+<textarea id="customCSS" placeholder="يمكنك إضافة CSS لتغيير واجهة الموقع"></textarea>
+<button onclick="applyCustomCSS()">تطبيق التغييرات</button>
+</div>
+</div>
+</div>
+
+<script>
+function calculateDose() {
+const weight = parseFloat(document.getElementById('weight').value);
+const drug = document.getElementById('drug').value;
+let dose = 0;
+if(!weight){alert("يرجى إدخال وزن المريض!"); return;}
+switch(drug){
+case "propofol": dose = weight*2; break;
+case "midazolam": dose = weight*0.1; break;
+case "fentanyl": dose = weight*0.001; break;
+case "ketamine": dose = weight*1.5; break;
+}
+document.getElementById('dose').innerText = dose+" ملغ";
+}
+
+function sendAIMessage() {
+const input = document.getElementById('aiInput').value;
+if(!input) return;
+const chatBox = document.getElementById('aiChatBox');
+const userMsg = document.createElement('p');
+userMsg.innerHTML = "<b>أنت:</b> "+input;
+chatBox.appendChild(userMsg);
+const aiMsg = document.createElement('p');
+aiMsg.innerHTML = "<b>الذكاء الاصطناعي:</b> يرجى مراجعة الحالة مع طبيب متخصص.";
+chatBox.appendChild(aiMsg);
+chatBox.scrollTop = chatBox.scrollHeight;
+document.getElementById('aiInput').value='';
+}
+
+function openAdminPanel() {document.getElementById('adminPanel').style.display='block';}
+function loginAdmin() {
+const pw = document.getElementById('adminPassword').value;
+if(pw==="mustafa@2006#2"){document.getElementById('adminContent').style.display='block';alert("تم الدخول للوحة التحكم!");}
+else{alert("كلمة المرور خاطئة!");}}
+function applyCustomCSS(){const css=document.getElementById('customCSS').value; const styleTag=document.createElement('style'); styleTag.innerHTML=css; document.head.appendChild(styleTag); alert("تم تطبيق التغييرات!");}
+</script>
+</body>
+</html>
