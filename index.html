@@ -87,9 +87,8 @@ button:hover { background:#0056b3; }
 </div>
 
 <script>
-// إظهار القسم المطلوب
 function showSection(id){
-  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+  document.querySelectorAll('.section').forEach(s => s.style.display='none');
   document.getElementById(id).style.display='block';
 }
 
@@ -101,7 +100,6 @@ let drugsData = {
   "ketamine": {dosePerKg:1.5, side:["هلوسة","ارتفاع ضغط الدم"], treatment:["مهدئ","مراقبة ضغط الدم"]}
 };
 
-// حساب الجرعة
 function calculateDose(){
   let w=parseFloat(document.getElementById('weightDose').value);
   let age=parseInt(document.getElementById('ageDose').value);
@@ -113,7 +111,6 @@ function calculateDose(){
   document.getElementById('doseBox').innerHTML=html;
 }
 
-// حساب السوائل والدم
 function calculateFluids(){
   let w=parseFloat(document.getElementById('weightFluids').value);
   let age=parseInt(document.getElementById('ageFluids').value);
@@ -123,7 +120,6 @@ function calculateFluids(){
   document.getElementById('fluidsBox').innerHTML=`<p>كمية السوائل: <b>${fluids} مل</b></p><p>كمية الدم: <b>${blood} لتر</b></p>`;
 }
 
-// اللارنغوسكوب
 function calculateLaryngo(){
   let age=parseInt(document.getElementById('ageLaryngo').value);
   if(!age){ alert("أدخل العمر"); return; }
@@ -137,28 +133,30 @@ function calculateLaryngo(){
   document.getElementById('laryngoBox').innerHTML=`<p>الحجم: <b>${size}</b></p><p>${tips}</p>`;
 }
 
-// شات AI وهمي (سيعمل بعد ربط backend)
+// شات AI
 async function sendAIMessage(){
   const input=document.getElementById('aiInput').value;
   if(!input) return;
   const chatBox=document.getElementById('aiChatBox');
-  const userMsg=document.createElement('p'); userMsg.innerHTML="<b>أنت:</b> "+input;
+  const userMsg=document.createElement('p');
+  userMsg.innerHTML="<b>أنت:</b> "+input;
   chatBox.appendChild(userMsg);
 
-  const aiMsg=document.createElement('p'); aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> جاري الرد...";
+  const aiMsg=document.createElement('p');
+  aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> جاري الرد...";
   chatBox.appendChild(aiMsg);
   chatBox.scrollTop=chatBox.scrollHeight;
 
-  try {
+  try{
     const res = await fetch("/chat", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: input })
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message: input})
     });
     const data = await res.json();
-    aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> "+(data.reply || data.error);
-  } catch(err){
-    aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> حدث خطأ، تأكد من تشغيل السيرفر!";
+    aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> "+(data.reply || "خطأ في الرد");
+  }catch(err){
+    aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> حدث خطأ";
   }
 
   document.getElementById('aiInput').value='';
@@ -168,4 +166,10 @@ async function sendAIMessage(){
 function openAdminPanel(){ showSection('adminPanel'); }
 function loginAdmin(){
   let pw=document.getElementById('adminPassword').value;
-  if(pw==="mustafa@
+  if(pw==="mustafa@2006#2"){ document.getElementById('adminContent').style.display='block'; alert("تم الدخول للوحة التحكم!"); }
+  else alert("كلمة المرور خاطئة!");
+}
+function applyCustomCSS(){ 
+  let css=document.getElementById('customCSS').value;
+  let styleTag=document.getElementById('dynamicStyle');
+  if(!styleTag){ styleTag=document.createElement('style'); styleTag.id='dynamicStyle'; document.head.appendChild(styleTag
