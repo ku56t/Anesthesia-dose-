@@ -10,11 +10,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// للحصول على المسار الصحيح للملفات عند استخدام ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// سيرف صفحة الـ HTML عند زيارة /
+// تخدم كل الملفات داخل نفس المجلد (index.html + JS + CSS)
+app.use(express.static(__dirname));
+
+// صفحة البداية
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -22,7 +24,6 @@ app.get('/', (req, res) => {
 // endpoint للشات
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
-  // هنا تحط الكود الفعلي للـ AI أو OpenAI
   res.json({ reply: `تم استلام الرسالة: ${message}` });
 });
 
