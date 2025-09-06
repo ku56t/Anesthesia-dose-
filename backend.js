@@ -13,7 +13,7 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// تخدم كل الملفات داخل نفس المجلد (index.html + JS + CSS)
+// يخدم كل الملفات داخل نفس المجلد (index.html + JS + CSS)
 app.use(express.static(__dirname));
 
 // صفحة البداية
@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 // endpoint للشات
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
+  // هنا تحط الكود الفعلي للـ AI
   res.json({ reply: `تم استلام الرسالة: ${message}` });
 });
 
