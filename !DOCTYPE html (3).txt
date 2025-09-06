@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حساب التخدير والعمليات</title>
+<style>
+body { font-family: Arial; direction: rtl; background:#f0f2f5; margin:0; padding:0; transition: background 1s; }
+.container { max-width:700px; margin:50px auto; padding:20px; background:#fff; border-radius:15px; box-shadow:0 0 15px rgba(0,0,0,0.2); text-align:center; position:relative; overflow:hidden;}
+h1,h2 { color:#333; transition: color 1s; }
+input,select,button,textarea { width:100%; padding:12px; margin:10px 0; border-radius:6px; border:1px solid #ccc; transition: all 0.3s;}
+button { background:#007bff; color:#fff; border:none; cursor:pointer; transition: background 0.3s; }
+button:hover { background:#0056b3; }
+#aiChatBox, #doseBox, #fluidsBox, #laryngoBox { height:200px; overflow-y:auto; background:#e9ecef; padding:10px; border-radius:6px; text-align:right; margin-bottom:10px;}
+.sideEffect { background:#ffe0e0; padding:5px; margin:5px 0; border-radius:5px; animation:fadeIn 1s; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.bubble { position:absolute; border-radius:50%; opacity:0.6; animation: floatUp linear infinite; pointer-events:none;}
+@keyframes floatUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(-10vh); } }
+.admin-section { margin-top:20px; padding:15px; border:1px dashed #aaa; border-radius:10px; background:#fafafa; }
+.section { display:none; margin-top:20px;}
+</style>
+</head>
+<body>
+<div id="bubbleContainer"></div>
+
+<div class="container">
+<h1>موقع التخدير الطبي</h1>
+
+<!-- الأزرار الرئيسية -->
+<button onclick="showSection('doseSection')">حساب جرعة التخدير</button>
+<button onclick="showSection('fluidsSection')">حساب السوائل والدم</button>
+<button onclick="showSection('laryngoSection')">حجم اللارنغوسكوب وأنواع التيوبات</button>
+<button onclick="showSection('aiSection')">شات الذكاء الاصطناعي الطبي</button>
+<button onclick="openAdminPanel()">لوحة التحكم (للمالك)</button>
+
+<!-- قسم حساب الجرعة -->
+<div id="doseSection" class="section container">
+<h2>حساب جرعة التخدير</h2>
+<label>وزن المريض (كغ):</label><input type="number" id="weightDose" placeholder="أدخل الوزن">
+<label>عمر المريض (سنة):</label><input type="number" id="ageDose" placeholder="أدخل العمر">
+<label>نوع الدواء:</label>
+<select id="drugDose">
+<option value="propofol">بروبوفول</option>
+<option value="midazolam">ميدازولام</option>
+<option value="fentanyl">فنتانيل</option>
+<option value="ketamine">كيتامين</option>
+</select>
+<button onclick="calculateDose()">احسب الجرعة</button>
+<div id="doseBox"></div>
+<div id="sideEffectsDose"></div>
+</div>
+
+<!-- قسم حساب السوائل والدم -->
+<div id="fluidsSection" class="section container">
+<h2>حساب السوائل والدم</h2>
+<label>وزن المريض (كغ):</label><input type="number" id="weightFluids" placeholder="أدخل الوزن">
+<label>عمر المريض (سنة):</label><input type="number" id="ageFluids" placeholder="أدخل العمر">
+<button onclick="calculateFluids()">احسب السوائل والدم</button>
+<div id="fluidsBox"></div>
+</div>
+
+<!-- قسم اللارنغوسكوب -->
+<div id="laryngoSection" class="section container">
+<h2>حجم اللارنغوسكوب وأنواع التيوبات</h2>
+<label>عمر المريض (سنة):</label><input type="number" id="ageLaryngo" placeholder="أدخل العمر">
+<button onclick="calculateLaryngo()">احسب الحجم والطرق</button>
+<div id="laryngoBox"></div>
+</div>
+
+<!-- قسم الشات -->
+<div id="aiSection" class="section container">
+<h2>شات الذكاء الاصطناعي الطبي</h2>
+<div id="aiChatBox"></div>
+<textarea id="aiInput" placeholder="اكتب حالة المريض هنا..."></textarea>
+<button onclick="sendAIMessage()">أرسل</button>
+</div>
+
+<!-- لوحة التحكم -->
+<div id="adminPanel" class="admin-section">
+<h1>لوحة التحكم</h1>
+<label>كلمة المرور:</label>
+<input type="password" id="adminPassword" placeholder="أدخل كلمة المرور">
+<button onclick="loginAdmin()">تسجيل الدخول</button>
+
+<div id="adminContent" style="display:none">
+<h2>تغيير الواجهة</h2>
+<textarea id="customCSS" placeholder="أدخل CSS لتغيير الواجهة"></textarea>
+<button onclick="applyCustomCSS()">تطبيق</button>
+
+<h2>تعديل الأدوية</h2>
+<textarea id="customDrugs" placeholder="اسم_الدواء,جرعة لكل كغ,المؤثرات الجانبية,العلاج المقترح"></textarea>
+<button onclick="applyCustomDrugs()">تطبيق</button>
+
+<h2>مؤثرات رسومية</h2>
+<button onclick="toggleSideEffects(true)">عرض المؤثرات</button>
+<button onclick="toggleSideEffects(false)">إخفاء المؤثرات</button>
+<button onclick="triggerEffect()">تأثير بصري</button>
+<button onclick="startBubbles()">فقاعات متحركة</button>
+</div>
+</div>
+
+<script>
+// بيانات الأدوية
+let drugsData = {
+"propofol": {dosePerKg:2, side:["دوار","انخفاض ضغط الدم"], treatment:["رفع القدم","إبطاء الحقن"]},
+"midazolam": {dosePerKg:0.1, side:["نعاس","ارتخاء العضلات"], treatment:["مراقبة التنفس","تخفيف الجرعة"]},
+"fentanyl": {dosePerKg:0.001, side:["تثبيط تنفسي","غثيان"], treatment:["توفير الأكسجين","أدوية مضادة للغثيان"]},
+"ketamine": {dosePerKg:1.5, side:["هلوسة","ارتفاع ضغط الدم"], treatment:["مهدئ","مراقبة ضغط الدم"]}
+};
+
+// عرض واجهة محددة
+function showSection(id){
+document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+document.getElementById(id).style.display='block';
+}
+
+// حساب الجرعة
+function calculateDose(){
+let w = parseFloat(document.getElementById('weightDose').value);
+let age = parseInt(document.getElementById('ageDose').value);
+let drug = document.getElementById('drugDose').value;
+if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
+let dose = w * drugsData[drug].dosePerKg;
+let html=`<p>الجرعة: <b>${dose} ملغ</b></p>`;
+html+=`<h3>الأعراض الجانبية:</h3>`;
+drugsData[drug].side.forEach((s,i)=>{ html+=`<div class="sideEffect">${s} - علاج: ${drugsData[drug].treatment[i]}</div>`; });
+document.getElementById('doseBox').innerHTML=html;
+}
+
+// حساب السوائل والدم
+function calculateFluids(){
+let w=parseFloat(document.getElementById('weightFluids').value);
+let age=parseInt(document.getElementById('ageFluids').value);
+if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
+let fluids = (w*30).toFixed(0); // مثال: 30 مل لكل كغ
+let blood = (w*70/1000).toFixed(2); // مثال: 70 مل لكل كغ
+document.getElementById('fluidsBox').innerHTML=`<p>كمية السوائل: <b>${fluids} مل</b></p><p>كمية الدم: <b>${blood} لتر</b></p>`;
+}
+
+// اللارنغوسكوب
+function calculateLaryngo(){
+let age=parseInt(document.getElementById('ageLaryngo').value);
+if(!age){ alert("أدخل العمر"); return; }
+let size="", tips="";
+if(age<1){ size="0"; tips="استخدم حجم 0 للرضع"; }
+else if(age<2){ size="1"; tips="استخدم حجم 1 للأطفال الصغار"; }
+else if(age<5){ size="2"; tips="استخدم حجم 2 للأطفال"; }
+else if(age<12){ size="3"; tips="استخدم حجم 3"; }
+else{ size="4"; tips="استخدم حجم 4 للبالغين"; }
+tips+= "<br>التيوبات المناسبة: " + ["نيو-نيون","بلاستيك صغير","متوسط","كبير","كبير جدًا"][parseInt(size)];
+document.getElementById('laryngoBox').innerHTML=`<p>الحجم: <b>${size}</b></p><p>${tips}</p>`;
+}
+
+// شات AI
+async function sendAIMessage(){
+const input=document.getElementById('aiInput').value;
+if(!input) return;
+const chatBox=document.getElementById('aiChatBox');
+const userMsg=document.createElement('p'); userMsg.innerHTML="<
