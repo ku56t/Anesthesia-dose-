@@ -13,3 +13,6 @@
     "node": "18.x"
   }
 }
+"scripts": {
+  "start": "node backend.js"
+}
