@@ -1,13 +1,20 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+
 import OpenAI from "openai";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.resolve("index.html"));
+});
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY // ضع هنا مفتاح OpenAI الخاص بك في Environment Variables
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 app.post("/ai", async (req, res) => {
@@ -27,5 +34,5 @@ app.post("/ai", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
