@@ -1,31 +1,30 @@
 // backend.js
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // هنا توضع index.html وكل ملفات JS/CSS
 
-// مثال endpoint للشات
-app.post('/chat', (req, res) => {
+// خدمة الملفات الثابتة (HTML, JS, CSS)
+app.use(express.static("public"));
+
+// شات AI وهمي (يمكن ربط OpenAI لاحقاً)
+app.post("/chat", (req, res) => {
   const { message } = req.body;
+  if (!message) return res.json({ error: "لا يوجد رسالة" });
 
-  // هنا ممكن تربط OpenAI أو Dialogflow لاحقاً
-  // حالياً مجرد رد تجريبي
-  if (!message) {
-    return res.json({ error: "لم يتم إرسال أي رسالة" });
-  }
-
-  const reply = "رد تجريبي للذكاء الاصطناعي: " + message;
+  // هنا يمكنك ربط OpenAI أو أي AI آخر
+  const reply = `الرد على: "${message}" (مثال)`;
   res.json({ reply });
 });
 
 // تشغيل السيرفر
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
