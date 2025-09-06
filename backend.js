@@ -1,30 +1,40 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+// backend.js
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
+// ضروري لمعالجة __dirname في ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.json());
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
 
-// خدمة الملفات الثابتة (index.html + أي ملفات JS/CSS)
+// خدمة الملفات الثابتة من الجذر
 app.use(express.static(__dirname));
 
-// نقطة النهاية للشات (تجريبية)
-app.post("/chat", (req, res) => {
-  const userMsg = req.body.message;
-  const reply = "تم استلام رسالتك: " + userMsg;
+// صفحة البداية
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// مسار الشات
+app.post('/chat', async (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.json({ error: "لم يتم إدخال رسالة" });
+
+  // مثال مؤقت للرد على الرسالة
+  const reply = `لقد استلمت رسالتك: "${message}"`;
   res.json({ reply });
 });
 
-// أي طلب آخر يرسل index.html
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+// تشغيل السيرفر
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
