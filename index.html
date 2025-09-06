@@ -149,43 +149,13 @@ const aiMsg=document.createElement('p'); aiMsg.innerHTML="<b>الذكاء الا
 chatBox.appendChild(aiMsg);
 chatBox.scrollTop=chatBox.scrollHeight;
 
-const res = await fetch('/chat', { 'https://anesthesia-dose.onrender.com/chat
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ message: input })
-});
-  try{
+try{
+  const res = await fetch('/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: input })
+  });
   const data = await res.json();
   aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> "+(data.reply || data.error);
 }catch(err){
-  aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> حدث خطأ، تأكد من تشغيل السيرفر!";
-}
-
-document.getElementById('aiInput').value='';
-}
-
-// لوحة التحكم
-function openAdminPanel(){ showSection('adminPanel'); }
-function loginAdmin(){
-let pw=document.getElementById('adminPassword').value;
-if(pw==="mustafa@2006#2"){ document.getElementById('adminContent').style.display='block'; alert("تم الدخول للوحة التحكم!"); }
-else alert("كلمة المرور خاطئة!");
-}
-function applyCustomCSS(){ 
-let css=document.getElementById('customCSS').value;
-let styleTag=document.getElementById('dynamicStyle');
-if(!styleTag){ styleTag=document.createElement('style'); styleTag.id='dynamicStyle'; document.head.appendChild(styleTag);}
-styleTag.innerHTML=css;
-alert("تم تطبيق CSS");
-}
-function applyCustomDrugs(){
-let text=document.getElementById('customDrugs').value.trim();
-if(!text) return;
-drugsData={};
-document.getElementById("drugDose").innerHTML="";
-text.split("\n").forEach(line=>{
-let parts=line.split(",");
-if(parts.length>=4){
-drugsData[parts[0].trim()]={dosePerKg:parseFloat(parts[1]), side:[parts[2].trim()], treatment:[parts[3].trim()]};
-let option=document.createElement("option"); option.value=parts[0].trim(); option.innerText=parts[0].trim();
-document.getElementById("drugDose").
+  aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> حدث خطأ، تأ
