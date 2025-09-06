@@ -7,11 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// مسار الجذر الحالي
+// تحديد المسار الصحيح للجذر
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// تقديم الملفات الثابتة من الجذر
+// تقديم الملفات الثابتة
 app.use(express.static(__dirname));
 
 // شات AI وهمي
