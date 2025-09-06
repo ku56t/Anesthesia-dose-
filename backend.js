@@ -1,33 +1,29 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// backend.js
+import express from "express";
+import cors from "cors";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(express.static("public")); // هذا لتقديم index.html من مجلد public
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// endpoint للشات
-app.post('/chat', async (req, res) => {
+// شات AI وهمي
+app.post("/chat", (req, res) => {
   const { message } = req.body;
-  if (!message) return res.json({ error: "لم يتم إدخال رسالة" });
+  if (!message) return res.json({ error: "لا يوجد رسالة" });
 
-  // مثال مؤقت: يمكن ربطه لاحقًا بـ OpenAI أو Dialogflow
-  const reply = `لقد استلمت رسالتك: "${message}"`;
+  // مثال للردود الوهمية
+  let reply = "الرد الفعلي يحتاج backend جاهز";
+  if (message.includes("جرعة")) reply = "يتم حساب الجرعة تلقائيًا بعد إدخال الوزن والعمر";
+  if (message.includes("سوائل")) reply = "حساب السوائل والدم جاري";
+
   res.json({ reply });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Health check
+app.get("/", (req, res) => {
+  res.sendFile("index.html", { root: "public" });
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
