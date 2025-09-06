@@ -1,31 +1,27 @@
 import express from "express";
-import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-// تحديد المسار الصحيح للجذر
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// تقديم الملفات الثابتة
-app.use(express.static(__dirname));
+app.use(express.json());
 
-// شات AI وهمي
+// هنا نحدد المسار الصحيح للـ index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html")); // ضع index.html في نفس مجلد backend.js
+});
+
+// نقطة النهاية للشات
 app.post("/chat", (req, res) => {
   const { message } = req.body;
-  if (!message) return res.json({ error: "لا يوجد رسالة" });
-  let reply = "الرد الفعلي يحتاج backend جاهز";
-  res.json({ reply });
+  // مثال رد وهمي
+  res.json({ reply: "تم استقبال الرسالة: " + message });
 });
 
-// الصفحة الرئيسية
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
