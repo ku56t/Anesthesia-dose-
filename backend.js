@@ -6,12 +6,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// استخدم مفتاح OpenAI من Environment Variable
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY // ضع هنا مفتاح OpenAI الخاص بك في Environment Variables
 });
 
-// نقطة نهاية للشات AI
 app.post("/ai", async (req, res) => {
   const { message } = req.body;
   if(!message) return res.json({ reply: "الرجاء كتابة رسالة." });
@@ -29,15 +27,5 @@ app.post("/ai", async (req, res) => {
   }
 });
 
-// تشغيل السيرفر على البورت الذي يحدده Render
-const PORT = process.env.PORT || 3000;
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
