@@ -149,12 +149,12 @@ const aiMsg=document.createElement('p'); aiMsg.innerHTML="<b>الذكاء الا
 chatBox.appendChild(aiMsg);
 chatBox.scrollTop=chatBox.scrollHeight;
 
-try{
-  const res = await fetch('https://anesthesia-dose.onrender.com/chat', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ message: input })
-  });
+const res = await fetch('/chat', { 'https://anesthesia-dose.onrender.com/chat
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: input })
+});
+  try{
   const data = await res.json();
   aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> "+(data.reply || data.error);
 }catch(err){
