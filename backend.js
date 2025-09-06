@@ -1,28 +1,30 @@
-// backend.js
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public")); // هذا لتقديم index.html من مجلد public
+
+// مسار الجذر الحالي
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// تقديم الملفات الثابتة من الجذر
+app.use(express.static(__dirname));
 
 // شات AI وهمي
 app.post("/chat", (req, res) => {
   const { message } = req.body;
   if (!message) return res.json({ error: "لا يوجد رسالة" });
-
-  // مثال للردود الوهمية
   let reply = "الرد الفعلي يحتاج backend جاهز";
-  if (message.includes("جرعة")) reply = "يتم حساب الجرعة تلقائيًا بعد إدخال الوزن والعمر";
-  if (message.includes("سوائل")) reply = "حساب السوائل والدم جاري";
-
   res.json({ reply });
 });
 
-// Health check
+// الصفحة الرئيسية
 app.get("/", (req, res) => {
-  res.sendFile("index.html", { root: "public" });
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 const PORT = process.env.PORT || 3000;
