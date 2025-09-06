@@ -137,17 +137,30 @@ tips+="<br>التيوبات المناسبة: "+["نيو-نيون","بلاستي
 document.getElementById('laryngoBox').innerHTML=`<p>الحجم: <b>${size}</b></p><p>${tips}</p>`;
 }
 
-// شات AI (نمطي حتى تعمل الواجهة)
+// شات AI فعلي مع backend
 async function sendAIMessage(){
 const input=document.getElementById('aiInput').value;
 if(!input) return;
 const chatBox=document.getElementById('aiChatBox');
 const userMsg=document.createElement('p'); userMsg.innerHTML="<b>أنت:</b> "+input;
 chatBox.appendChild(userMsg);
+
 const aiMsg=document.createElement('p'); aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> جاري الرد...";
 chatBox.appendChild(aiMsg);
 chatBox.scrollTop=chatBox.scrollHeight;
-aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> الرد الفعلي يحتاج backend جاهز";
+
+try{
+  const res = await fetch('https://anesthesia-dose.onrender.com/chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ message: input })
+  });
+  const data = await res.json();
+  aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> "+(data.reply || data.error);
+}catch(err){
+  aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> حدث خطأ، تأكد من تشغيل السيرفر!";
+}
+
 document.getElementById('aiInput').value='';
 }
 
@@ -175,11 +188,4 @@ let parts=line.split(",");
 if(parts.length>=4){
 drugsData[parts[0].trim()]={dosePerKg:parseFloat(parts[1]), side:[parts[2].trim()], treatment:[parts[3].trim()]};
 let option=document.createElement("option"); option.value=parts[0].trim(); option.innerText=parts[0].trim();
-document.getElementById("drugDose").appendChild(option);
-}});
-alert("تم تحديث الأدوية!");
-}
-</script>
-
-</body>
-</html>
+document.getElementById("drugDose").
