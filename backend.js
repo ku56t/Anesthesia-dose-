@@ -1,33 +1,43 @@
-// backend.js
 import express from "express";
-import cors from "cors";
-import OpenAI from "openai";
+import bodyParser from "body-parser";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-// المفتاح يتم قراءته من Environment Variable على Render
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY // ضع المفتاح هنا على Render وليس هنا مباشرة
-});
+app.use(bodyParser.json());
 
-app.post("/ai", async (req, res) => {
-  const { message } = req.body;
-  if (!message) return res.json({ reply: "الرجاء كتابة رسالة." });
-
+// API للذكاء الاصطناعي
+app.post("/api/chat", async (req, res) => {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: message }]
+    const { message } = req.body;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "أنت مساعد طبي متخصص في التخدير." },
+          { role: "user", content: message }
+        ],
+      }),
     });
-    const reply = response.choices[0].message.content;
-    res.json({ reply });
-  } catch (error) {
-    console.error(error);
-    res.json({ reply: "حدث خطأ. يرجى المحاولة لاحقًا." });
+
+    const data = await response.json();
+    res.json({ reply: data.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حدث خطأ في السيرفر" });
   }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
