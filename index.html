@@ -177,6 +177,21 @@ document.getElementById("drugDose").appendChild(option);
 alert("تم تحديث الأدوية!");
 }
 </script>
-
 </body>
 </html>
+<script>
+async function sendMessage() {
+  const message = document.getElementById("userMessage").value;
+
+  const response = await fetch("https://anesthesia-dose.onrender.com/ai", {  // <-- هذا السطر
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ message })
+  });
+
+  const data = await response.json();
+  document.getElementById("reply").innerText = data.reply;
+}
+</script>
