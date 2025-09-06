@@ -1,31 +1,31 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+// backend.js
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public')); // يخدم كل ملفات public
+app.use(express.static(path.join(__dirname, 'public')));
 
-// صفحة البداية
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// مسار شات AI
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
-  if(!message) return res.json({ error: "لم يتم إدخال رسالة" });
-
-  // مثال رد مؤقت
+  if (!message) return res.json({ error: "لم يتم إدخال رسالة" });
   const reply = `لقد استلمت رسالتك: "${message}"`;
   res.json({ reply });
 });
 
-// تشغيل السيرفر
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
