@@ -1,27 +1,35 @@
 // backend.js
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-
-dotenv.config();
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(express.static('public')); // لو خليت الاندكس والـ assets بمجلد public
 
-// خدمة الملفات الثابتة (HTML, JS, CSS)
-app.use(express.static("public"));
+// مسار الجذر
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html'); // تأكد أن index.html بجانب backend.js أو عدّل المسار
+});
 
-// شات AI وهمي (يمكن ربط OpenAI لاحقاً)
-app.post("/chat", (req, res) => {
+// مسار شات AI
+app.post('/chat', async (req, res) => {
   const { message } = req.body;
-  if (!message) return res.json({ error: "لا يوجد رسالة" });
+  if(!message) return res.json({ error: "لم يتم إدخال رسالة" });
 
-  // هنا يمكنك ربط OpenAI أو أي AI آخر
-  const reply = `الرد على: "${message}" (مثال)`;
-  res.json({ reply });
+  try {
+    // مثال رد ثابت قبل ربط AI حقيقي
+    const reply = `لقد استلمت رسالتك: "${message}" - الرد سيأتي بعد ربط AI الفعلي.`;
+    
+    res.json({ reply });
+  } catch(err) {
+    console.error(err);
+    res.json({ error: "حدث خطأ أثناء المعالجة" });
+  }
 });
 
 // تشغيل السيرفر
