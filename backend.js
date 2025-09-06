@@ -1,4 +1,3 @@
-// backend.js
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -19,9 +18,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// endpoint للشات
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.json({ error: "لم يتم إدخال رسالة" });
+
+  // مثال مؤقت: يمكن ربطه لاحقًا بـ OpenAI أو Dialogflow
   const reply = `لقد استلمت رسالتك: "${message}"`;
   res.json({ reply });
 });
