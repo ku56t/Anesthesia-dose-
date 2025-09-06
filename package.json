@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "main": "backend.js",
+  "license": "MIT",
   "scripts": {
     "start": "node backend.js"
   },
@@ -13,6 +14,5 @@
   },
   "engines": {
     "node": "18.x"
-  },
-  "license": "MIT"
+  }
 }
