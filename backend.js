@@ -1,43 +1,30 @@
-import express from "express";
-import bodyParser from "body-parser";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+
+// للحصول على المسار الصحيح للملفات عند استخدام ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// سيرف صفحة الـ HTML عند زيارة /
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// endpoint للشات
+app.post('/chat', async (req, res) => {
+  const { message } = req.body;
+  // هنا تحط الكود الفعلي للـ AI أو OpenAI
+  res.json({ reply: `تم استلام الرسالة: ${message}` });
+});
+
 const PORT = process.env.PORT || 3000;
-
-app.use(bodyParser.json());
-
-// API للذكاء الاصطناعي
-app.post("/api/chat", async (req, res) => {
-  try {
-    const { message } = req.body;
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "أنت مساعد طبي متخصص في التخدير." },
-          { role: "user", content: message }
-        ],
-      }),
-    });
-
-    const data = await response.json();
-    res.json({ reply: data.choices[0].message.content });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "حدث خطأ في السيرفر" });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
