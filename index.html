@@ -17,6 +17,7 @@ button:hover { background:#0056b3; }
 </style>
 </head>
 <body>
+
 <div class="container">
 <h1>موقع التخدير الطبي</h1>
 
@@ -40,15 +41,9 @@ button:hover { background:#0056b3; }
   <option value="day">يوم</option>
 </select>
 <label>نوع الدواء:</label>
-<select id="drugDose">
-<option value="propofol">بروبوفول</option>
-<option value="midazolam">ميدازولام</option>
-<option value="fentanyl">فنتانيل</option>
-<option value="ketamine">كيتامين</option>
-</select>
+<select id="drugDose"></select>
 <button onclick="calculateDose()">احسب الجرعة</button>
 <div id="doseBox"></div>
-
 <h3>شات القسم</h3>
 <div id="doseChatBox" class="chatBox"></div>
 <textarea id="doseAIInput" placeholder="اكتب حالة المريض هنا..."></textarea>
@@ -69,7 +64,6 @@ button:hover { background:#0056b3; }
 </select>
 <button onclick="calculateFluids()">احسب السوائل والدم</button>
 <div id="fluidsBox"></div>
-
 <h3>شات القسم</h3>
 <div id="fluidsChatBox" class="chatBox"></div>
 <textarea id="fluidsAIInput" placeholder="اكتب حالة المريض هنا..."></textarea>
@@ -88,7 +82,6 @@ button:hover { background:#0056b3; }
 </select>
 <button onclick="calculateLaryngo()">احسب الحجم والطرق</button>
 <div id="laryngoBox"></div>
-
 <h3>شات القسم</h3>
 <div id="laryngoChatBox" class="chatBox"></div>
 <textarea id="laryngoAIInput" placeholder="اكتب حالة المريض هنا..."></textarea>
@@ -119,58 +112,59 @@ button:hover { background:#0056b3; }
 </div>
 </div>
 
-<script>
+<script type="module">
+import { sideEffectsData } from './sideEffects.js';
+
+// بيانات الأدوية من قاعدة البيانات
+let drugsData = sideEffectsData;
+
+// تهيئة قائمة الأدوية
+const drugSelect = document.getElementById('drugDose');
+Object.keys(drugsData).forEach(d=>{
+  let opt = document.createElement('option'); opt.value=d; opt.innerText=d;
+  drugSelect.appendChild(opt);
+});
+
 // إظهار القسم المطلوب
-function showSection(id){
+window.showSection = function(id){
   document.querySelectorAll('.section').forEach(s=>s.style.display='none');
   document.getElementById(id).style.display='block';
-}
-
-// بيانات الأدوية
-let drugsData = {
-  "propofol": {dosePerKg:2, side:["دوار","انخفاض ضغط الدم"], treatment:["رفع القدم","إبطاء الحقن"]},
-  "midazolam": {dosePerKg:0.1, side:["نعاس","ارتخاء العضلات"], treatment:["مراقبة التنفس","تخفيف الجرعة"]},
-  "fentanyl": {dosePerKg:0.001, side:["تثبيط تنفسي","غثيان"], treatment:["توفير الأكسجين","أدوية مضادة للغثيان"]},
-  "ketamine": {dosePerKg:1.5, side:["هلوسة","ارتفاع ضغط الدم"], treatment:["مهدئ","مراقبة ضغط الدم"]}
 };
 
 // حساب الجرعة
-function calculateDose(){
-  let w=parseFloat(document.getElementById('weightDose').value);
-  let age=parseInt(document.getElementById('ageDose').value);
-  let unit=document.getElementById('ageUnitDose').value;
-  let drug=document.getElementById('drugDose').value;
+window.calculateDose = function(){
+  const w = parseFloat(document.getElementById('weightDose').value);
+  let age = parseInt(document.getElementById('ageDose').value);
+  const unit = document.getElementById('ageUnitDose').value;
+  const drug = document.getElementById('drugDose').value;
   if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
-  if(unit=="month") age=age/12;
-  else if(unit=="day") age=age/365;
-  let dose=w*drugsData[drug].dosePerKg;
-  let html=`<p>الجرعة: <b>${dose} ملغ</b></p><h3>الأعراض الجانبية:</h3>`;
-  drugsData[drug].side.forEach((s,i)=>{
-    html+=`<div class="sideEffect">${s} - علاج: ${drugsData[drug].treatment[i]}</div>`;
-  });
-  document.getElementById('doseBox').innerHTML=html;
-}
+  if(unit==="month") age/=12;
+  else if(unit==="day") age/=365;
+  const info = drugsData[drug];
+  if(!info){ alert("الدواء غير موجود"); return; }
+  const dose = w*info.dosePerKg;
+  let html = `<p>الجرعة: <b>${dose} ملغ</b></p><h3>الأعراض الجانبية:</h3>`;
+  info.side.forEach((s,i)=>{ html+=`<div class="sideEffect">${s} - علاج: ${info.treatment[i]}</div>`; });
+  document.getElementById('doseBox').innerHTML = html;
+};
 
 // حساب السوائل والدم
-function calculateFluids(){
+window.calculateFluids = function(){
   let w=parseFloat(document.getElementById('weightFluids').value);
   let age=parseInt(document.getElementById('ageFluids').value);
   let unit=document.getElementById('ageUnitFluids').value;
   if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
-  if(unit=="month") age=age/12;
-  else if(unit=="day") age=age/365;
-  let fluids=(w*30).toFixed(0);
-  let blood=(w*70/1000).toFixed(2);
+  if(unit==="month") age/=12; else if(unit==="day") age/=365;
+  let fluids=(w*30).toFixed(0), blood=(w*70/1000).toFixed(2);
   document.getElementById('fluidsBox').innerHTML=`<p>كمية السوائل: <b>${fluids} مل</b></p><p>كمية الدم: <b>${blood} لتر</b></p>`;
-}
+};
 
 // اللارنغوسكوب
-function calculateLaryngo(){
+window.calculateLaryngo = function(){
   let age=parseInt(document.getElementById('ageLaryngo').value);
   let unit=document.getElementById('ageUnitLaryngo').value;
   if(!age){ alert("أدخل العمر"); return; }
-  if(unit=="month") age=age/12;
-  else if(unit=="day") age=age/365;
+  if(unit==="month") age/=12; else if(unit==="day") age/=365;
   let size="", tips="";
   if(age<1){ size="0"; tips="استخدم حجم 0 للرضع"; }
   else if(age<2){ size="1"; tips="استخدم حجم 1 للأطفال الصغار"; }
@@ -179,12 +173,12 @@ function calculateLaryngo(){
   else{ size="4"; tips="استخدم حجم 4 للبالغين"; }
   tips+="<br>التيوبات المناسبة: "+["نيو-نيون","بلاستيك صغير","متوسط","كبير","كبير جدًا"][parseInt(size)];
   document.getElementById('laryngoBox').innerHTML=`<p>الحجم: <b>${size}</b></p><p>${tips}</p>`;
-}
+};
 
 // شات لكل قسم
-async function sendSectionAI(section){
+window.sendSectionAI = async function(section){
   const inputEl=document.getElementById(section+"AIInput");
-  const chatBox=document.getElementById(section+"ChatBox");
+  const chatBox=document.getElementById(section+"ChatBox") || document.getElementById(section+"ChatBox");
   const input=inputEl.value;
   if(!input) return;
   const userMsg=document.createElement('p'); userMsg.innerHTML="<b>أنت:</b> "+input;
@@ -205,27 +199,23 @@ async function sendSectionAI(section){
     aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> حدث خطأ، تأكد من تشغيل السيرفر!";
   }
   inputEl.value='';
-}
+};
 
 // لوحة التحكم
-function openAdminPanel(){ showSection('adminPanel'); }
-function loginAdmin(){
+window.openAdminPanel = function(){ showSection('adminPanel'); };
+window.loginAdmin = function(){
   let pw=document.getElementById('adminPassword').value;
-  if(pw==="mustafa@2006#2"){
-    document.getElementById('adminContent').style.display='block';
-    alert("تم الدخول للوحة التحكم!");
-  } else alert("كلمة المرور خاطئة!");
-}
-
-function applyCustomCSS(){
+  if(pw==="mustafa@2006#2"){ document.getElementById('adminContent').style.display='block'; alert("تم الدخول للوحة التحكم!"); }
+  else alert("كلمة المرور خاطئة!");
+};
+window.applyCustomCSS = function(){
   let css=document.getElementById('customCSS').value;
   let styleTag=document.getElementById('dynamicStyle');
   if(!styleTag){ styleTag=document.createElement('style'); styleTag.id='dynamicStyle'; document.head.appendChild(styleTag);}
   styleTag.innerHTML=css;
   alert("تم تطبيق CSS");
-}
-
-function applyCustomDrugs(){
+};
+window.applyCustomDrugs = function(){
   let text=document.getElementById('customDrugs').value.trim();
   if(!text) return;
   drugsData={};
@@ -240,36 +230,7 @@ function applyCustomDrugs(){
     }
   });
   alert("تم تعديل الأدوية");
-}
-  <script type="module">
-  import { sideEffectsData } from './sideEffects.js';
-
-  // مثال: استخدام قاعدة البيانات عند حساب الجرعة
-  function calculateDose() {
-    const w = parseFloat(document.getElementById('weightDose').value);
-    let age = parseInt(document.getElementById('ageDose').value);
-    const unit = document.getElementById('ageUnitDose').value;
-    const drug = document.getElementById('drugDose').value;
-
-    if (!w || !age) { alert("أدخل الوزن والعمر"); return; }
-
-    if (unit === "month") age = age / 12;
-    else if (unit === "day") age = age / 365;
-
-    // جرعة تقريبية لكل دواء حسب قاعدة البيانات
-    const drugInfo = sideEffectsData[drug];
-    if (!drugInfo) { alert("الدواء غير موجود"); return; }
-
-    const dose = w * 1; // يمكنك ضبط الجرعة الأساسية لكل دواء حسب قاعدة بياناتك
-    let html = `<p>الجرعة: <b>${dose} ملغ</b></p><h3>الأعراض الجانبية:</h3>`;
-
-    drugInfo.forEach(effect => {
-      html += `<div class="sideEffect">${effect.side} - علاج: ${effect.treatment}</div>`;
-    });
-
-    document.getElementById('doseBox').innerHTML = html;
-  }
-</script>
+};
 </script>
 </body>
 </html>
