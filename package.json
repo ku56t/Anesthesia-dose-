@@ -1,28 +1,16 @@
 {
   "name": "anesthesia-dose-calculator",
   "version": "1.0.0",
-  "description": "نظام التخدير الطبي — حاسبة الجرعات وحساب السوائل والدم، مع اقتراحات حجم اللارنغوسكوب وETT",
+  "description": "موقع لحساب جرعات التخدير، السوائل، وحجم اللارنغوسكوب مع AI",
+  "type": "module",
   "main": "backend.js",
   "scripts": {
-    "start": "node backend.js",
-    "dev": "nodemon backend.js"
+    "start": "node backend.js"
   },
-  "keywords": [
-    "anesthesia",
-    "medical",
-    "dose",
-    "calculator",
-    "fluids",
-    "airway"
-  ],
-  "author": "مصطفى مكي عبدالرضا",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "body-parser": "^1.20.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
   }
 }
