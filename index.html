@@ -458,4 +458,127 @@ document.addEventListener('DOMContentLoaded', ()=>{
     // numeric total
     let total = perKg * weightKg;
     // ASA
-    total *= (asaFactors[asaClas
+    total *= (asaFactors[asaClass] || 1.0);
+    // multiply disease factors
+    diseases.forEach(d => { if(diseaseFactors[d]) total *= diseaseFactors[d]; });
+    // cap by max if provided
+    if(doc.max && typeof doc.max.value === 'number'){
+      if(total > doc.max.value) total = doc.max.value;
+    }
+    return { value: total, unitPerKg: doc.unitPerKg, unitTotal: (doc.max && doc.max.unit) ? doc.max.unit : (doc.unitPerKg.includes('µg') ? 'µg' : 'mg') };
+  }
+
+  function formatDose(calc){
+    if(!calc) return 'خطأ بالحساب';
+    if(calc.unit === '% MAC') return `${calc.value} ${calc.unit}`;
+    let v = parseFloat(calc.value);
+    if(isNaN(v)) return 'خطأ';
+    const unit = calc.unitTotal || (calc.unitPerKg && calc.unitPerKg.includes('µg') ? 'µg' : 'mg');
+    if(unit === 'µg') v = Math.round(v);
+    else if(v < 10) v = v.toFixed(2);
+    else v = v.toFixed(1);
+    return `${v} ${unit}`;
+  }
+
+  // calculate button action
+  document.getElementById('calcDose').addEventListener('click', ()=>{
+    const weight = parseFloat(document.getElementById('weightDose').value);
+    const ageVal = parseFloat(document.getElementById('ageDose').value);
+    const ageUnit = document.getElementById('ageUnitDose').value;
+    const asaClass = document.getElementById('asaSelect').value;
+    const drug = drugSelect.value;
+    if(!weight || !ageVal || !drug){ alert('الرجاء إدخال الوزن والعمر واختيار الدواء'); return; }
+    const ageYears = toYears(ageVal, ageUnit);
+    if(isNaN(ageYears)){ alert('ادخل عمراً صحيحاً'); return; }
+    // collect diseases
+    let diseases = [];
+    if(document.getElementById('patientHealth').value === 'unhealthy'){
+      document.querySelectorAll('.diseaseChk:checked').forEach(ch=>diseases.push(ch.value));
+    }
+    const calc = calculateTotalDose(drug, weight, ageYears, asaClass, diseases);
+    const display = formatDose(calc);
+
+    // show result
+    const rEl = document.getElementById('doseResult');
+    rEl.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill">${drug}</span><span class="pill">الوزن: ${weight} كغ</span><span class="pill">العمر: ${ageVal} ${ageUnit}</span><span class="pill">ASA: ${asaClass}</span></div>
+      <div style="margin-top:10px;font-weight:700;font-size:1.1rem;color:#dff6ff">الجرعة المحسوبة: ${display}</div>
+      <div style="margin-top:8px;color:#cfeffd">(لاحقاً قسّم الجرعة حسب طريقة إعطاء: bolus / CRI / infusion — هذه قيمة كلية تقريبية)</div>`;
+
+    // side effects
+    const ddata = drugData[drug];
+    let effHTML = '';
+    ddata.side_effects.forEach((se,i)=>{
+      effHTML += `<div class="sideEffect"><b>عرض جانبي:</b> ${se}<br><b>التعامل:</b> ${ddata.management[i] || 'تدبير داعم عام'}</div>`;
+    });
+    document.getElementById('doseEffects').innerHTML = effHTML;
+  });
+
+  // Fluids calculation (simple rules)
+  document.getElementById('calcFluids').addEventListener('click', ()=>{
+    const w = parseFloat(document.getElementById('weightFluid').value);
+    const ageVal = parseFloat(document.getElementById('ageFluid').value) || 0;
+    const ageUnit = document.getElementById('ageUnitFluid').value;
+    if(!w){ alert('أدخل الوزن'); return; }
+    // maintenance simplified: pediatrics vs adults
+    const ageYears = toYears(ageVal, ageUnit) || 30;
+    let maintenance;
+    if(ageYears < 1) maintenance = 100 * w; // neonate approx (ml/kg/24h rough)
+    else if(ageYears < 10) maintenance = 50 * w;
+    else maintenance = 30 * w; // adults ~30 ml/kg/day
+    // blood volume estimate
+    const bloodVol = (ageYears < 1 ? 85 : (ageYears < 10 ? 80 : 70)) * w; // ml
+    document.getElementById('fluidResult').innerHTML = `<div><b>سائل صيانة (تقريبي / 24h):</b> ${Math.round(maintenance)} ml</div>
+      <div style="margin-top:6px"><b>حجم دم تقريبي:</b> ${Math.round(bloodVol)} ml</div>`;
+  });
+
+  // Airway sizing
+  document.getElementById('calcAirway').addEventListener('click', ()=>{
+    const ageVal = parseFloat(document.getElementById('ageAirway').value);
+    const ageUnit = document.getElementById('ageUnitAirway').value;
+    const weight = parseFloat(document.getElementById('weightAirway').value) || null;
+    if(!ageVal){ alert('أدخل العمر'); return; }
+    const ageYears = toYears(ageVal, ageUnit);
+    let blade = '', ett = '';
+    if(ageYears < 1){ blade = 'Neonate/Infant blade 0-1'; ett = '3.0 - 3.5 mm (approx)'; }
+    else if(ageYears < 5){ blade = 'Pediatric blade 1-2'; ett = '4.0 - 4.5 mm'; }
+    else if(ageYears < 10){ blade = 'Pediatric blade 2'; ett = '5.0 - 5.5 mm'; }
+    else { blade = 'Standard adult blade (3-4)'; ett = '6.0 - 8.0 mm (حسب الجنس والوزن)'; }
+    // if weight available, suggest ETT formula: (age/4)+4 for uncuffed pediatrics
+    let ettByAge = '';
+    if(ageYears >= 1 && ageYears < 12){
+      const e = Math.floor(ageYears/4 + 4);
+      ettByAge = ` — طريقة سريعة ETT (uncuffed): ${e}.0 mm`;
+    }
+    document.getElementById('airwayResult').innerHTML = `<div><b>شفرة مناسبة:</b> ${blade}</div><div style="margin-top:6px"><b>ETT اقتراح:</b> ${ett}${ettByAge}</div><div style="margin-top:8px;color:#cfeefd">نصائح: تأكد من وجود أدوات الاسترجاع والتهوية وتجهيز مقاسين أكبر/أصغر دائماً.</div>`;
+  });
+
+  // Admin (local)
+  document.getElementById('loginAdmin').addEventListener('click', ()=>{
+    const pass = document.getElementById('adminPass').value;
+    if(pass === 'mustafa@2006#2'){
+      document.getElementById('adminPanelContent').innerHTML = '<div style="color:#cfe8ff">مرحباً، يمكنك تعديل قاعدة الأدوية في كائن drugData داخل الكود (محلياً).</div>';
+    } else alert('كلمة مرور خاطئة');
+  });
+
+  // Chat placeholders
+  function setupChat(btnId, chatId, inputId){
+    document.getElementById(btnId).addEventListener('click', ()=>{
+      const msg = document.getElementById(inputId).value.trim();
+      if(!msg) return;
+      const cb = document.getElementById(chatId);
+      cb.innerHTML += `<div style="margin-bottom:6px"><b>أنت:</b> ${msg}</div>`;
+      document.getElementById(inputId).value = '';
+      // simple canned reply
+      cb.innerHTML += `<div style="margin-bottom:6px;color:#bfe9ff"><b>AI:</b> هذه إجابة تجريبية. لم يتم تفعيل واجهة OpenAI في هذا الملف المحلي. راجع دائماً التعليمات السريرية.</div>`;
+      cb.scrollTop = cb.scrollHeight;
+    });
+  }
+  setupChat('doseChatSend','doseChat','doseChatInput');
+  setupChat('fluidChatSend','fluidChat','fluidChatInput');
+  setupChat('airwayChatSend','airwayChat','airwayChatInput');
+
+}); // DOMContentLoaded
+</script>
+</body>
+</html>
+
