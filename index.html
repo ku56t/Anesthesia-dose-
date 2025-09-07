@@ -218,6 +218,7 @@
   }
   populateDrugs();
 
+  // ---------- تحويل العمر ----------
   function ageToYears(value,unit){
     const v=parseFloat(value);
     if(isNaN(v)||v<0) return NaN;
@@ -238,26 +239,25 @@
     if(!drug || !sideEffectsData[drug]){ alert('اختر دواء صحيح'); return; }
 
     const effects = sideEffectsData[drug];
-    let totalDose=0;
-    effects.forEach(e=>{ totalDose = e.dosePerKg * w; }); // جرعة واحدة لكل دواء
-    document.getElementById('doseResult').innerHTML = `<strong>الجرعة الموصى بها:</strong> ${totalDose.toFixed(2)} مل/كغ`;
-
-    // عرض كل الأعراض
     const effectsDiv = document.getElementById('doseEffects');
     effectsDiv.innerHTML = '';
+
+    // حساب كل الجرعات لكل تأثير
     effects.forEach(e=>{
+      const dose = e.dosePerKg * w;
       const div = document.createElement('div');
       div.className='sideEffect';
-      div.innerHTML=`<strong>العرض:</strong> ${e.side}<br><strong>العلاج:</strong> ${e.treatment}`;
+      div.innerHTML=`<strong>الجرعة:</strong> ${dose.toFixed(2)} مل/كغ<br><strong>العرض:</strong> ${e.side}<br><strong>العلاج:</strong> ${e.treatment}`;
       effectsDiv.appendChild(div);
     });
+
+    document.getElementById('doseResult').innerHTML = `<strong>تم حساب جميع الجرعات لكل تأثير دوائي.</strong>`;
   });
 
   // ---------- حساب السوائل/الدم ----------
   document.getElementById('calcFluids').addEventListener('click', ()=>{
     const w=parseFloat(document.getElementById('weightFluids').value);
     if(isNaN(w)||w<=0){ alert('أدخل وزن صحيح'); return; }
-    // مثال بسيط: 10 مل/كغ/ساعة
     const fluidRate = 10*w;
     document.getElementById('fluidsResult').innerHTML = `<strong>معدل السوائل:</strong> ${fluidRate.toFixed(2)} مل/ساعة`;
   });
@@ -271,7 +271,7 @@
     else if(age<2) tubeSize=3.5;
     else if(age<4) tubeSize=4.0;
     else if(age<6) tubeSize=4.5;
-    else tubeSize=5 + ((age-6)/4); // تقريب
+    else tubeSize=5 + ((age-6)/4);
     document.getElementById('airwayResult').innerHTML=`الحجم الموصى به للـ ETT: ${tubeSize.toFixed(1)} مم`;
   });
 
@@ -312,7 +312,6 @@
       const msg=input.value.trim(); if(!msg) return;
       const userDiv=document.createElement('div'); userDiv.innerHTML=`<strong>أنت:</strong> ${msg}`; chat.appendChild(userDiv);
       input.value='';
-      // رد تلقائي وهمي
       const botDiv=document.createElement('div'); botDiv.innerHTML=`<strong>AI:</strong> سيتم الرد بناءً على قاعدة البيانات`; chat.appendChild(botDiv);
       chat.scrollTop=chat.scrollHeight;
     });
@@ -320,6 +319,7 @@
   setupChat('doseChatInput','doseChat');
   setupChat('fluidsChatInput','fluidsChat');
   setupChat('airwayChatInput','airwayChat');
+
 </script>
 </body>
 </html>
