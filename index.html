@@ -118,64 +118,62 @@ button:hover { background:#0056b3; }
 </div>
 </div>
 
-<script type="module">
-// import قاعدة الأعراض الجانبية
-import { sideEffectsData } from './sideEffects.js';
-
-// إظهار القسم المطلوب
-function showSection(id){
+<script>
+// عرض القسم المطلوب
+window.showSection = function(id){
 document.querySelectorAll('.section').forEach(s=>s.style.display='none');
 document.getElementById(id).style.display='block';
 }
 
-// بيانات الأدوية (كمثال أولي)
-let drugsData = {
-"propofol": {dosePerKg:2},
-"midazolam": {dosePerKg:0.1},
-"fentanyl": {dosePerKg:0.001},
-"ketamine": {dosePerKg:1.5}
+// قاعدة الأعراض الجانبية الواقعية
+window.sideEffectsData = {
+  "propofol": [
+    { doseRange:"0-10", side:"دوار", treatment:"رفع القدم" },
+    { doseRange:"10-20", side:"انخفاض ضغط الدم", treatment:"إبطاء الحقن" }
+    // يمكن إضافة آلاف أخرى
+  ],
+  "midazolam":[
+    { doseRange:"0-1", side:"نعاس", treatment:"مراقبة التنفس" }
+  ],
+  "fentanyl":[
+    { doseRange:"0-0.1", side:"تثبيط تنفسي", treatment:"توفير الأكسجين" }
+  ],
+  "ketamine":[
+    { doseRange:"0-10", side:"هلوسة", treatment:"مهدئ" }
+  ]
 };
 
-// حساب الجرعة وعرض الأعراض من sideEffects.js
-function calculateDose(){
+// بيانات الأدوية
+window.drugsData = {
+"propofol": {dosePerKg:2, side:["دوار","انخفاض ضغط الدم"], treatment:["رفع القدم","إبطاء الحقن"]},
+"midazolam": {dosePerKg:0.1, side:["نعاس"], treatment:["مراقبة التنفس"]},
+"fentanyl": {dosePerKg:0.001, side:["تثبيط تنفسي"], treatment:["توفير الأكسجين"]},
+"ketamine": {dosePerKg:1.5, side:["هلوسة"], treatment:["مهدئ"]}
+};
+
+// حساب الجرعة
+window.calculateDose = function(){
 let w=parseFloat(document.getElementById('weightDose').value);
 let age=parseInt(document.getElementById('ageDose').value);
 let unit=document.getElementById('ageUnitDose').value;
 let drug=document.getElementById('drugDose').value;
 if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
-if(unit=="month") age=age/12; else if(unit=="day") age=age/365;
+if(unit=="month") age=age/12;
+else if(unit=="day") age=age/365;
 let dose=w*drugsData[drug].dosePerKg;
 let html=`<p>الجرعة: <b>${dose} ملغ</b></p><h3>الأعراض الجانبية:</h3>`;
-if(sideEffectsData[drug]){
-sideEffectsData[drug].forEach(se=>{
-let [min,max]=se.doseRange.split('-');
-if(max===undefined) max=Infinity;
-if(dose>=parseFloat(min) && dose<=parseFloat(max)){
-html+=`<div class="sideEffect">${se.side} - علاج: ${se.treatment}</div>`;
-}
-});
-}
+drugsData[drug].side.forEach((s,i)=>{ html+=`<div class="sideEffect">${s} - علاج: ${drugsData[drug].treatment[i]}</div>`; });
 document.getElementById('doseBox').innerHTML=html;
 }
 
 // السوائل والدم
-function calculateFluids(){
+window.calculateFluids = function(){
 let w=parseFloat(document.getElementById('weightFluids').value);
 let age=parseInt(document.getElementById('ageFluids').value);
 let unit=document.getElementById('ageUnitFluids').value;
 if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
-if(unit=="month") age=age/12; else if(unit=="day") age=age/365;
+if(unit=="month") age=age/12;
+else if(unit=="day") age=age/365;
 let fluids=(w*30).toFixed(0);
 let blood=(w*70/1000).toFixed(2);
-document.getElementById('fluidsBox').innerHTML=`<p>كمية السوائل: <b>${fluids} مل</b></p><p>كمية الدم: <b>${blood} لتر</b></p>`;
-}
-
-// اللارنغوسكوب
-function calculateLaryngo(){
-let age=parseInt(document.getElementById('ageLaryngo').value);
-let unit=document.getElementById('ageUnitLaryngo').value;
-if(!age){ alert("أدخل العمر"); return; }
-if(unit=="month") age=age/12; else if(unit=="day") age=age/365;
-let size="", tips="";
-if(age<1){ size="0"; tips="استخدم حجم 0 للرضع"; }
-else if(age<2){
+document.getElementById('fluidsBox').innerHTML=`
