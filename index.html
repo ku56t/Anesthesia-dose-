@@ -125,11 +125,12 @@
         <label>وزن المريض (اختياري)
           <input id="weightAirway" type="number" step="0.1">
         </label>
-        <button class="btn" id="calcAirway">حساب الحجم</button>
+        <button class="btn" id="calcAirway">حساب الحجم وطريقة الاستخدام</button>
       </div>
 
       <div>
         <div id="airwayResult" class="muted">النتيجة ستظهر هنا</div>
+        <div id="airwayGuide" style="margin-top:12px"></div>
       </div>
     </div>
 
@@ -165,160 +166,120 @@
 </div>
 
 <script type="module">
-  // ---------- قاعدة الأدوية والأعراض ----------
-  const sideEffectsData = {
-    "propofol": [
-      { dosePerKg: 2.0, side: "انخفاض ضغط الدم", treatment: "رفع القدمين، إبطاء الحقن، محلول وريدي" },
-      { dosePerKg: 2.0, side: "تثبيط تنفسي", treatment: "مراقبة التنفس، دعم أكسجين، تجهيز الأدوات التنفسية" },
-      { dosePerKg: 2.0, side: "غثيان/قيء بعد العملية", treatment: "أدوية مضادة للغثيان (ondansetron)" }
-    ],
-    "midazolam": [
-      { dosePerKg: 0.1, side: "نعاس/تخدير مفرط", treatment: "مراقبة التنفس والوظائف الحيوية، تقليل الجرعة" },
-      { dosePerKg: 0.1, side: "ارتخاء عضلي", treatment: "مراقبة الحركات التنفسية، دعم تنفسي عند الحاجة" }
-    ],
-    "fentanyl": [
-      { dosePerKg: 0.002, side: "تثبيط تنفسي شديد", treatment: "دعم الأكسجين، نالوكسون إذا لزم، مراقبة صفة التنفس" },
-      { dosePerKg: 0.002, side: "غثيان/قيء", treatment: "مضادات القيء" },
-      { dosePerKg: 0.002, side: "حكة", treatment: "مضادات هستامين عند الضرورة" }
-    ],
-    "ketamine": [
-      { dosePerKg: 1.5, side: "هلوسة/كوابيس نفسية", treatment: "استخدام بنزوديازيبين كمضاد (مثلاً midazolam) ومحيط هادئ" },
-      { dosePerKg: 1.5, side: "ارتفاع ضغط الدم ومعدل ضربات القلب", treatment: "مراقبة الضغط، أدوية خافضة عند الحاجة" },
-      { dosePerKg: 1.5, side: "زيادة إفراز اللعاب", treatment: "مُقَِلّات الإفراز (glycopyrrolate) عند الحاجة" }
-    ]
-  };
+const sideEffectsData = {
+  "propofol":[
+    { dosePerKg:2.0, side:"انخفاض ضغط الدم", treatment:"رفع القدمين، إبطاء الحقن، محلول وريدي" },
+    { dosePerKg:2.0, side:"تثبيط تنفسي", treatment:"مراقبة التنفس، دعم أكسجين، تجهيز الأدوات التنفسية" },
+    { dosePerKg:2.0, side:"غثيان/قيء بعد العملية", treatment:"أدوية مضادة للغثيان (ondansetron)" }
+  ],
+  "midazolam":[
+    { dosePerKg:0.1, side:"نعاس/تخدير مفرط", treatment:"مراقبة التنفس والوظائف الحيوية، تقليل الجرعة" },
+    { dosePerKg:0.1, side:"ارتخاء عضلي", treatment:"مراقبة الحركات التنفسية، دعم تنفسي عند الحاجة" }
+  ],
+  "fentanyl":[
+    { dosePerKg:0.002, side:"تثبيط تنفسي شديد", treatment:"دعم الأكسجين، نالوكسون إذا لزم، مراقبة صفة التنفس" },
+    { dosePerKg:0.002, side:"غثيان/قيء", treatment:"مضادات القيء" },
+    { dosePerKg:0.002, side:"حكة", treatment:"مضادات هستامين عند الضرورة" }
+  ],
+  "ketamine":[
+    { dosePerKg:1.5, side:"هلوسة/كوابيس نفسية", treatment:"استخدام بنزوديازيبين كمضاد ومحيط هادئ" },
+    { dosePerKg:1.5, side:"ارتفاع ضغط الدم ومعدل ضربات القلب", treatment:"مراقبة الضغط، أدوية خافضة عند الحاجة" },
+    { dosePerKg:1.5, side:"زيادة إفراز اللعاب", treatment:"مُقَِلّات الإفراز عند الحاجة" }
+  ]
+};
 
-  // ---------- عناصر التحكم ----------
-  const panels = {
-    dose: document.getElementById('panelDose'),
-    fluids: document.getElementById('panelFluids'),
-    airway: document.getElementById('panelAirway'),
-    admin: document.getElementById('panelAdmin')
-  };
+const panels={dose:document.getElementById('panelDose'),fluids:document.getElementById('panelFluids'),airway:document.getElementById('panelAirway'),admin:document.getElementById('panelAdmin')};
+function hideAll(){Object.values(panels).forEach(p=>p.style.display='none');}
+document.getElementById('showDose').addEventListener('click',()=>{hideAll();panels.dose.style.display='block';});
+document.getElementById('showFluids').addEventListener('click',()=>{hideAll();panels.fluids.style.display='block';});
+document.getElementById('showAirway').addEventListener('click',()=>{hideAll();panels.airway.style.display='block';});
+document.getElementById('showAdmin').addEventListener('click',()=>{hideAll();panels.admin.style.display='block';});
 
-  function hideAll(){ Object.values(panels).forEach(p => p.style.display = 'none'); }
+// قائمة الأدوية
+const drugSelect=document.getElementById('drugDose');
+function populateDrugs(){drugSelect.innerHTML='';const keys=Object.keys(sideEffectsData);
+  if(keys.length===0){const opt=document.createElement('option');opt.value='';opt.textContent='لا توجد أدوية في القاعدة';drugSelect.appendChild(opt);}
+  else{keys.forEach(k=>{const opt=document.createElement('option');opt.value=k;opt.textContent=k;drugSelect.appendChild(opt);});}}
+populateDrugs();
 
-  document.getElementById('showDose').addEventListener('click', ()=> { hideAll(); panels.dose.style.display='block'; });
-  document.getElementById('showFluids').addEventListener('click', ()=> { hideAll(); panels.fluids.style.display='block'; });
-  document.getElementById('showAirway').addEventListener('click', ()=> { hideAll(); panels.airway.style.display='block'; });
-  document.getElementById('showAdmin').addEventListener('click', ()=> { hideAll(); panels.admin.style.display='block'; });
+// تحويل العمر
+function ageToYears(value,unit){const v=parseFloat(value);if(isNaN(v)||v<0)return NaN;if(unit==='years')return v;if(unit==='months')return v/12;if(unit==='days')return v/365;return NaN;}
 
-  // ---------- قائمة الأدوية ----------
-  const drugSelect = document.getElementById('drugDose');
-  function populateDrugs(){
-    drugSelect.innerHTML = '';
-    const keys = Object.keys(sideEffectsData);
-    if(keys.length===0){
-      const opt=document.createElement('option'); opt.value=''; opt.textContent='لا توجد أدوية في القاعدة'; drugSelect.appendChild(opt);
-    } else {
-      keys.forEach(k=>{
-        const opt=document.createElement('option'); opt.value=k; opt.textContent=k; drugSelect.appendChild(opt);
-      });
-    }
-  }
-  populateDrugs();
+// حساب الجرعة
+document.getElementById('calcDose').addEventListener('click',()=>{
+  const w=parseFloat(document.getElementById('weightDose').value);
+  const drug=document.getElementById('drugDose').value;
+  if(isNaN(w)||w<=0){alert('أدخل وزن صحيح');return;}
+  if(!drug||!sideEffectsData[drug]){alert('اختر دواء صحيح');return;}
+  const effects=sideEffectsData[drug];
+  let totalDose=effects[0].dosePerKg*w;
+  document.getElementById('doseResult').innerHTML=`<strong>الجرعة الموصى بها:</strong> ${totalDose.toFixed(2)} مل`;
+  const effectsDiv=document.getElementById('doseEffects'); effectsDiv.innerHTML='';
+  effects.forEach(e=>{const div=document.createElement('div');div.className='sideEffect';div.innerHTML=`<strong>العرض:</strong> ${e.side}<br><strong>العلاج:</strong> ${e.treatment}`;effectsDiv.appendChild(div);});
+});
 
-  // ---------- تحويل العمر ----------
-  function ageToYears(value,unit){
-    const v=parseFloat(value);
-    if(isNaN(v)||v<0) return NaN;
-    if(unit==='years') return v;
-    if(unit==='months') return v/12;
-    if(unit==='days') return v/365;
-    return NaN;
-  }
+// حساب السوائل/الدم
+document.getElementById('calcFluids').addEventListener('click',()=>{
+  const w=parseFloat(document.getElementById('weightFluids').value);
+  if(isNaN(w)||w<=0){alert('أدخل وزن صحيح');return;}
+  const fluidRate=10*w; 
+  document.getElementById('fluidsResult').innerHTML=`<strong>معدل السوائل:</strong> ${fluidRate.toFixed(2)} مل/ساعة`;
+});
 
-  // ---------- حساب الجرعة ----------
-  document.getElementById('calcDose').addEventListener('click', ()=>{
-    const w=parseFloat(document.getElementById('weightDose').value);
-    const ageVal=document.getElementById('ageDose').value;
-    const ageUnit=document.getElementById('ageUnitDose').value;
-    const drug=document.getElementById('drugDose').value;
+// حساب اللارنغوسكوب
+document.getElementById('calcAirway').addEventListener('click',()=>{
+  let age=parseFloat(document.getElementById('ageAirway').value);
+  const unit=document.getElementById('ageUnitAirway').value;
+  if(isNaN(age)||age<0){alert('أدخل عمر صحيح');return;}
+  if(unit==='months') age/=12; if(unit==='days') age/=365;
 
-    if(isNaN(w)||w<=0){ alert('أدخل وزن صحيح'); return; }
-    if(!drug || !sideEffectsData[drug]){ alert('اختر دواء صحيح'); return; }
+  let tubeSize=0;
+  if(age<1) tubeSize=3.0;
+  else if(age<2) tubeSize=3.5;
+  else if(age<4) tubeSize=4.0;
+  else if(age<6) tubeSize=4.5;
+  else tubeSize=5+((age-6)/4);
 
-    const effects = sideEffectsData[drug];
-    const effectsDiv = document.getElementById('doseEffects');
-    effectsDiv.innerHTML = '';
+  document.getElementById('airwayResult').innerHTML=`الحجم الموصى به للـ ETT: ${tubeSize.toFixed(1)} مم`;
 
-    // حساب كل الجرعات لكل تأثير
-    effects.forEach(e=>{
-      const dose = e.dosePerKg * w;
-      const div = document.createElement('div');
-      div.className='sideEffect';
-      div.innerHTML=`<strong>الجرعة:</strong> ${dose.toFixed(2)} مل/كغ<br><strong>العرض:</strong> ${e.side}<br><strong>العلاج:</strong> ${e.treatment}`;
-      effectsDiv.appendChild(div);
-    });
+  let guideText='';
+  if(tubeSize<4.0) guideText='استخدم شفرة صغيرة من نوع Miller، ضع رأس الطفل على مسند منخفض، ادخل اللارنغوسكوب برفق وحركه بزاوية 45°';
+  else if(tubeSize<6.0) guideText='استخدم شفرة Macintosh متوسطة، ضع رأس المريض في وضع sniffing، ادخل اللارنغوسكوب مع رفع اللسان بلطف';
+  else guideText='استخدم شفرة Macintosh كبيرة، تأكد من وضع الرأس والرقبة بشكل صحيح، تجنب الضغط الزائد على الأسنان';
+  document.getElementById('airwayGuide').innerHTML=`<strong>طريقة الاستخدام:</strong> ${guideText}`;
+});
 
-    document.getElementById('doseResult').innerHTML = `<strong>تم حساب جميع الجرعات لكل تأثير دوائي.</strong>`;
+// لوحة التحكم
+const adminPass="mustafa@2006#2";
+document.getElementById('adminLogin').addEventListener('click',()=>{
+  const val=document.getElementById('adminPass').value;
+  if(val===adminPass){document.getElementById('adminArea').style.display='block';alert('تم تسجيل الدخول');}
+  else alert('كلمة مرور خاطئة');
+});
+document.getElementById('adminSave').addEventListener('click',()=>{
+  const text=document.getElementById('adminEdit').value;
+  const lines=text.split("\n");
+  lines.forEach(l=>{const parts=l.split(",");if(parts.length>=4){const drug=parts[0].trim();const dose=parseFloat(parts[1].trim());const side=parts[2].trim();const treatment=parts[3].trim();
+    if(!sideEffectsData[drug]) sideEffectsData[drug]=[];
+    sideEffectsData[drug].push({dosePerKg:dose,side,treatment});}});
+  populateDrugs(); alert('تم حفظ التعديلات');
+});
+
+// شات وهمي
+function setupChat(inputId,chatId){
+  const input=document.getElementById(inputId);
+  const chat=document.getElementById(chatId);
+  document.getElementById(inputId+'Send').addEventListener('click',()=>{
+    const msg=input.value.trim(); if(!msg) return;
+    const userDiv=document.createElement('div'); userDiv.innerHTML=`<strong>أنت:</strong> ${msg}`; chat.appendChild(userDiv);
+    input.value='';
+    const botDiv=document.createElement('div'); botDiv.innerHTML=`<strong>AI:</strong> سيتم الرد بناءً على قاعدة البيانات`; chat.appendChild(botDiv);
+    chat.scrollTop=chat.scrollHeight;
   });
-
-  // ---------- حساب السوائل/الدم ----------
-  document.getElementById('calcFluids').addEventListener('click', ()=>{
-    const w=parseFloat(document.getElementById('weightFluids').value);
-    if(isNaN(w)||w<=0){ alert('أدخل وزن صحيح'); return; }
-    const fluidRate = 10*w;
-    document.getElementById('fluidsResult').innerHTML = `<strong>معدل السوائل:</strong> ${fluidRate.toFixed(2)} مل/ساعة`;
-  });
-
-  // ---------- حساب اللارنغوسكوب/ETT ----------
-  document.getElementById('calcAirway').addEventListener('click', ()=>{
-    const age=parseFloat(document.getElementById('ageAirway').value);
-    if(isNaN(age)||age<0){ alert('أدخل عمر صحيح'); return; }
-    let tubeSize=0;
-    if(age<1) tubeSize=3.0;
-    else if(age<2) tubeSize=3.5;
-    else if(age<4) tubeSize=4.0;
-    else if(age<6) tubeSize=4.5;
-    else tubeSize=5 + ((age-6)/4);
-    document.getElementById('airwayResult').innerHTML=`الحجم الموصى به للـ ETT: ${tubeSize.toFixed(1)} مم`;
-  });
-
-  // ---------- لوحة التحكم ----------
-  const adminPass = "mustafa@2006#2";
-  document.getElementById('adminLogin').addEventListener('click', ()=>{
-    const val=document.getElementById('adminPass').value;
-    if(val===adminPass){
-      document.getElementById('adminArea').style.display='block';
-      alert('تم تسجيل الدخول');
-      setTimeout(()=>{document.getElementById('adminArea').style.display='none'; alert('تم تسجيل الخروج تلقائياً');},5*60*1000);
-    } else alert('كلمة مرور خاطئة');
-  });
-
-  document.getElementById('adminSave').addEventListener('click', ()=>{
-    const text = document.getElementById('adminEdit').value;
-    const lines=text.split("\n");
-    lines.forEach(l=>{
-      const parts=l.split(",");
-      if(parts.length>=4){
-        const drug=parts[0].trim();
-        const dose=parseFloat(parts[1].trim());
-        const side=parts[2].trim();
-        const treatment=parts[3].trim();
-        if(!sideEffectsData[drug]) sideEffectsData[drug]=[];
-        sideEffectsData[drug].push({dosePerKg:dose, side, treatment});
-      }
-    });
-    populateDrugs();
-    alert('تم حفظ التعديلات');
-  });
-
-  // ---------- شات وهمي لكل قسم ----------
-  function setupChat(inputId, chatId){
-    const input=document.getElementById(inputId);
-    const chat=document.getElementById(chatId);
-    document.getElementById(inputId+'Send').addEventListener('click', ()=>{
-      const msg=input.value.trim(); if(!msg) return;
-      const userDiv=document.createElement('div'); userDiv.innerHTML=`<strong>أنت:</strong> ${msg}`; chat.appendChild(userDiv);
-      input.value='';
-      const botDiv=document.createElement('div'); botDiv.innerHTML=`<strong>AI:</strong> سيتم الرد بناءً على قاعدة البيانات`; chat.appendChild(botDiv);
-      chat.scrollTop=chat.scrollHeight;
-    });
-  }
-  setupChat('doseChatInput','doseChat');
-  setupChat('fluidsChatInput','fluidsChat');
-  setupChat('airwayChatInput','airwayChat');
+}
+setupChat('doseChatInput','doseChat');
+setupChat('fluidsChatInput','fluidsChat');
+setupChat('airwayChatInput','airwayChat');
 
 </script>
 </body>
