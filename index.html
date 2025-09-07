@@ -241,6 +241,35 @@ function applyCustomDrugs(){
   });
   alert("تم تعديل الأدوية");
 }
+  <script type="module">
+  import { sideEffectsData } from './sideEffects.js';
+
+  // مثال: استخدام قاعدة البيانات عند حساب الجرعة
+  function calculateDose() {
+    const w = parseFloat(document.getElementById('weightDose').value);
+    let age = parseInt(document.getElementById('ageDose').value);
+    const unit = document.getElementById('ageUnitDose').value;
+    const drug = document.getElementById('drugDose').value;
+
+    if (!w || !age) { alert("أدخل الوزن والعمر"); return; }
+
+    if (unit === "month") age = age / 12;
+    else if (unit === "day") age = age / 365;
+
+    // جرعة تقريبية لكل دواء حسب قاعدة البيانات
+    const drugInfo = sideEffectsData[drug];
+    if (!drugInfo) { alert("الدواء غير موجود"); return; }
+
+    const dose = w * 1; // يمكنك ضبط الجرعة الأساسية لكل دواء حسب قاعدة بياناتك
+    let html = `<p>الجرعة: <b>${dose} ملغ</b></p><h3>الأعراض الجانبية:</h3>`;
+
+    drugInfo.forEach(effect => {
+      html += `<div class="sideEffect">${effect.side} - علاج: ${effect.treatment}</div>`;
+    });
+
+    document.getElementById('doseBox').innerHTML = html;
+  }
+</script>
 </script>
 </body>
 </html>
