@@ -1,237 +1,126 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>موقع التخدير الطبي</title>
-<style>
-body { font-family: Arial; direction: rtl; background:#f0f2f5; margin:0; padding:0; }
-.container { max-width:700px; margin:20px auto; padding:20px; background:#fff; border-radius:15px; box-shadow:0 0 15px rgba(0,0,0,0.2); text-align:center; position:relative; }
-h1,h2 { color:#333; }
-input,select,button,textarea { width:100%; padding:12px; margin:10px 0; border-radius:6px; border:1px solid #ccc; }
-button { background:#007bff; color:#fff; border:none; cursor:pointer; }
-button:hover { background:#0056b3; }
-.section { display:none; margin-top:20px; }
-.sideEffect { background:#ffe0e0; padding:5px; margin:5px 0; border-radius:5px; text-align:right; }
-.chatBox { height:200px; overflow-y:auto; background:#e9ecef; padding:10px; border-radius:6px; margin-bottom:10px; text-align:right; }
-</style>
+  <meta charset="UTF-8">
+  <title>حاسبة جرعات التخدير</title>
+  <style>
+    body { font-family: Arial, sans-serif; direction: rtl; text-align: center; background: #f4f4f9; }
+    h1 { color: #0077b6; }
+    .btn { padding: 15px 25px; margin: 10px; font-size: 18px; border: none; border-radius: 10px; background: #0096c7; color: white; cursor: pointer; }
+    .btn:hover { background: #0077b6; }
+    .section { display: none; padding: 20px; margin-top: 20px; border: 2px solid #ddd; border-radius: 10px; background: #fff; }
+    #result { margin-top: 15px; font-size: 18px; color: darkgreen; }
+    #side-effects { margin-top: 20px; padding: 10px; background: #ffe6e6; border-radius: 10px; }
+  </style>
 </head>
 <body>
-<div class="container">
-<h1>موقع التخدير الطبي</h1>
+  <h1>🚑 نظام حساب جرعات التخدير</h1>
 
-<button id="doseBtn">حساب جرعة التخدير</button>
-<button id="fluidsBtn">حساب السوائل والدم</button>
-<button id="laryngoBtn">حجم اللارنغوسكوب والتيوبات</button>
-<button id="aiBtn">شات الذكاء الاصطناعي الطبي</button>
-<button id="adminBtn">لوحة التحكم (للمالك)</button>
+  <button class="btn" onclick="showSection('dose')">💉 حساب جرعات التخدير</button>
+  <button class="btn" onclick="showSection('fluids')">💧 حساب السوائل والدم</button>
+  <button class="btn" onclick="showSection('airway')">😷 اللارنغوسكوب و ETT</button>
+  <button class="btn" onclick="showSection('admin')">🔑 لوحة التحكم</button>
 
-<div id="doseSection" class="section container">
-<h2>حساب جرعة التخدير</h2>
-<label>وزن المريض (كغ):</label>
-<input type="number" id="weightDose" placeholder="أدخل الوزن">
-<label>عمر المريض:</label>
-<input type="number" id="ageDose" placeholder="أدخل العمر">
-<select id="ageUnitDose">
-  <option value="year">سنة</option>
-  <option value="month">شهر</option>
-  <option value="day">يوم</option>
-</select>
-<label>نوع الدواء:</label>
-<select id="drugDose"></select>
-<button id="calcDoseBtn">احسب الجرعة</button>
-<div id="doseBox"></div>
+  <!-- قسم الجرعات -->
+  <div id="dose" class="section">
+    <h2>💉 حساب جرعات التخدير</h2>
+    <label>وزن المريض (كغم): <input type="number" id="weight"></label><br><br>
+    <label>عمر المريض: <input type="number" id="age"></label>
+    <select id="ageUnit">
+      <option value="days">أيام</option>
+      <option value="months">أشهر</option>
+      <option value="years" selected>سنوات</option>
+    </select><br><br>
+    <button class="btn" onclick="calculateDose()">احسب الجرعة</button>
+    <div id="result"></div>
+    <div id="side-effects"></div>
+    <button class="btn" onclick="openChat('dose')">💬 دردشة الذكاء الاصطناعي</button>
+  </div>
 
-<h3>شات القسم</h3>
-<div id="doseChatBox" class="chatBox"></div>
-<textarea id="doseAIInput" placeholder="اكتب حالة المريض هنا..."></textarea>
-<button id="doseSendBtn">أرسل</button>
-</div>
+  <!-- قسم السوائل -->
+  <div id="fluids" class="section">
+    <h2>💧 حساب السوائل والدم</h2>
+    <label>وزن المريض (كغم): <input type="number" id="fluidWeight"></label><br><br>
+    <button class="btn" onclick="calculateFluids()">احسب السوائل</button>
+    <div id="fluidsResult"></div>
+    <button class="btn" onclick="openChat('fluids')">💬 دردشة الذكاء الاصطناعي</button>
+  </div>
 
-<div id="fluidsSection" class="section container">
-<h2>حساب السوائل والدم</h2>
-<label>وزن المريض (كغ):</label>
-<input type="number" id="weightFluids" placeholder="أدخل الوزن">
-<label>عمر المريض:</label>
-<input type="number" id="ageFluids" placeholder="أدخل العمر">
-<select id="ageUnitFluids">
-  <option value="year">سنة</option>
-  <option value="month">شهر</option>
-  <option value="day">يوم</option>
-</select>
-<button id="calcFluidsBtn">احسب السوائل والدم</button>
-<div id="fluidsBox"></div>
+  <!-- قسم مجرى الهواء -->
+  <div id="airway" class="section">
+    <h2>😷 اختيار اللارنغوسكوب و ETT</h2>
+    <label>عمر المريض (سنوات): <input type="number" id="airwayAge"></label><br><br>
+    <button class="btn" onclick="calculateAirway()">اختر الحجم</button>
+    <div id="airwayResult"></div>
+    <button class="btn" onclick="openChat('airway')">💬 دردشة الذكاء الاصطناعي</button>
+  </div>
 
-<h3>شات القسم</h3>
-<div id="fluidsChatBox" class="chatBox"></div>
-<textarea id="fluidsAIInput" placeholder="اكتب حالة المريض هنا..."></textarea>
-<button id="fluidsSendBtn">أرسل</button>
-</div>
+  <!-- لوحة التحكم -->
+  <div id="admin" class="section">
+    <h2>🔑 لوحة التحكم</h2>
+    <label>اسم المستخدم: <input type="text" id="adminUser"></label><br><br>
+    <label>كلمة المرور: <input type="password" id="adminPass"></label><br><br>
+    <button class="btn" onclick="loginAdmin()">تسجيل الدخول</button>
+    <div id="adminPanel" style="display:none; margin-top:20px;">
+      <h3>⚙️ إعدادات الموقع</h3>
+      <p>يمكنك تعديل الأدوية والأعراض من backend مباشرة.</p>
+    </div>
+  </div>
 
-<div id="laryngoSection" class="section container">
-<h2>حجم اللارنغوسكوب والتيوبات</h2>
-<label>عمر المريض:</label>
-<input type="number" id="ageLaryngo" placeholder="أدخل العمر">
-<select id="ageUnitLaryngo">
-  <option value="year">سنة</option>
-  <option value="month">شهر</option>
-  <option value="day">يوم</option>
-</select>
-<button id="calcLaryngoBtn">احسب الحجم والطرق</button>
-<div id="laryngoBox"></div>
-
-<h3>شات القسم</h3>
-<div id="laryngoChatBox" class="chatBox"></div>
-<textarea id="laryngoAIInput" placeholder="اكتب حالة المريض هنا..."></textarea>
-<button id="laryngoSendBtn">أرسل</button>
-</div>
-
-<div id="aiSection" class="section container">
-<h2>شات الذكاء الاصطناعي الطبي العام</h2>
-<div id="aiChatBox" class="chatBox"></div>
-<textarea id="aiInput" placeholder="اكتب حالة المريض هنا..."></textarea>
-<button id="aiSendBtn">أرسل</button>
-</div>
-
-<div id="adminPanel" class="section container">
-<h2>لوحة التحكم</h2>
-<label>كلمة المرور:</label>
-<input type="password" id="adminPassword" placeholder="أدخل كلمة المرور">
-<button id="loginAdminBtn">تسجيل الدخول</button>
-<div id="adminContent" style="display:none;">
-<h3>تغيير واجهة الموقع (CSS)</h3>
-<textarea id="customCSS" placeholder="أدخل CSS لتغيير الواجهة"></textarea>
-<button id="applyCSSBtn">تطبيق</button>
-<h3>تعديل الأدوية</h3>
-<textarea id="customDrugs" placeholder="اسم_الدواء,جرعة لكل كغ,الأعراض,العلاج"></textarea>
-<button id="applyDrugsBtn">تطبيق</button>
-</div>
-</div>
-
-<script type="module">
-import { sideEffectsData } from './sideEffects.js';
-
-const sections = {
-  doseBtn:'doseSection', fluidsBtn:'fluidsSection', laryngoBtn:'laryngoSection', aiBtn:'aiSection', adminBtn:'adminPanel'
-};
-Object.keys(sections).forEach(id=>{
-  document.getElementById(id).onclick = ()=>showSection(sections[id]);
-});
-function showSection(id){
-  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
-  document.getElementById(id).style.display='block';
-}
-
-// ملء قائمة الأدوية
-const drugSelect = document.getElementById('drugDose');
-Object.keys(sideEffectsData).forEach(d=>{
-  const option = document.createElement('option'); option.value=d; option.innerText=d;
-  drugSelect.appendChild(option);
-});
-
-// حساب الجرعة مع الأعراض الجانبية
-document.getElementById('calcDoseBtn').onclick = ()=>{
-  let w=parseFloat(document.getElementById('weightDose').value);
-  let age=parseInt(document.getElementById('ageDose').value);
-  const unit=document.getElementById('ageUnitDose').value;
-  const drug=drugSelect.value;
-  if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
-  if(unit==="month") age/=12; else if(unit==="day") age/=365;
-  const drugInfo = sideEffectsData[drug];
-  let html=`<h3>الجرعات والأعراض الجانبية:</h3>`;
-  drugInfo.forEach(e=>{
-    const dose=w*e.dosePerKg;
-    html+=`<div class="sideEffect">الجرعة: <b>${dose.toFixed(2)} ملغ</b> - ${e.side} - علاج: ${e.treatment}</div>`;
-  });
-  document.getElementById('doseBox').innerHTML=html;
-};
-
-// السوائل والدم
-document.getElementById('calcFluidsBtn').onclick = ()=>{
-  let w=parseFloat(document.getElementById('weightFluids').value);
-  let age=parseInt(document.getElementById('ageFluids').value);
-  const unit=document.getElementById('ageUnitFluids').value;
-  if(!w||!age){ alert("أدخل الوزن والعمر"); return; }
-  if(unit==="month") age/=12; else if(unit==="day") age/=365;
-  const fluids=(w*30).toFixed(0);
-  const blood=(w*70/1000).toFixed(2);
-  document.getElementById('fluidsBox').innerHTML=`<p>كمية السوائل: <b>${fluids} مل</b></p><p>كمية الدم: <b>${blood} لتر</b></p>`;
-};
-
-// اللارنغوسكوب
-document.getElementById('calcLaryngoBtn').onclick = ()=>{
-  let age=parseInt(document.getElementById('ageLaryngo').value);
-  const unit=document.getElementById('ageUnitLaryngo').value;
-  if(!age){ alert("أدخل العمر"); return; }
-  if(unit==="month") age/=12; else if(unit==="day") age/=365;
-  let size="", tips="";
-  if(age<1){ size="0"; tips="استخدم حجم 0 للرضع"; }
-  else if(age<2){ size="1"; tips="استخدم حجم 1 للأطفال الصغار"; }
-  else if(age<5){ size="2"; tips="استخدم حجم 2 للأطفال"; }
-  else if(age<12){ size="3"; tips="استخدم حجم 3 للأطفال الأكبر"; }
-  else{ size="4"; tips="استخدم حجم 4 للبالغين"; }
-  tips+="<br>التيوبات المناسبة: "+["نيو-نيون","بلاستيك صغير","متوسط","كبير","كبير جدًا"][parseInt(size)];
-  document.getElementById('laryngoBox').innerHTML=`<p>الحجم: <b>${size}</b></p><p>${tips}</p>`;
-};
-
-// شات لكل قسم
-async function sendSectionAI(section){
-  const inputEl=document.getElementById(section+"AIInput");
-  const chatBox=document.getElementById(section+"ChatBox");
-  const input=inputEl.value;
-  if(!input) return;
-  const userMsg=document.createElement('p'); userMsg.innerHTML="<b>أنت:</b> "+input; chatBox.appendChild(userMsg);
-  const aiMsg=document.createElement('p'); aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> جاري الرد..."; chatBox.appendChild(aiMsg);
-  chatBox.scrollTop=chatBox.scrollHeight;
-  try{
-    const res = await fetch('/chat',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:input, section:section})
-    });
-    const data = await res.json();
-    aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> "+(data.reply||data.error);
-  }catch(err){ aiMsg.innerHTML="<b>الذكاء الاصطناعي:</b> حدث خطأ، تأكد من تشغيل السيرفر!"; }
-  inputEl.value='';
-}
-document.getElementById('doseSendBtn').onclick = ()=>sendSectionAI('dose');
-document.getElementById('fluidsSendBtn').onclick = ()=>sendSectionAI('fluids');
-document.getElementById('laryngoSendBtn').onclick = ()=>sendSectionAI('laryngo');
-document.getElementById('aiSendBtn').onclick = ()=>sendSectionAI('ai');
-
-// لوحة التحكم
-document.getElementById('loginAdminBtn').onclick = ()=>{
-  let pw=document.getElementById('adminPassword').value;
-  if(pw==="mustafa@2006#2"){
-    document.getElementById('adminContent').style.display='block'; alert("تم الدخول للوحة التحكم!");
-  }else alert("كلمة المرور خاطئة!");
-};
-document.getElementById('applyCSSBtn').onclick = ()=>{
-  let css=document.getElementById('customCSS').value;
-  let styleTag=document.getElementById('dynamicStyle');
-  if(!styleTag){ styleTag=document.createElement('style'); styleTag.id='dynamicStyle'; document.head.appendChild(styleTag);}
-  styleTag.innerHTML=css; alert("تم تطبيق CSS");
-};
-document.getElementById('applyDrugsBtn').onclick = ()=>{
-  let text=document.getElementById('customDrugs').value.trim();
-  if(!text) return;
-  sideEffectsData={}; drugSelect.innerHTML="";
-  text.split("\n").forEach(line=>{
-    let parts=line.split(",");
-    if(parts.length>=4){
-      sideEffectsData[parts[0].trim()] = [{dosePerKg:parseFloat(parts[1]), side:parts[2].trim(), treatment:parts[3].trim()}];
-      const option=document.createElement('option'); option.value=parts[0].trim(); option.innerText=parts[0].trim();
-      drugSelect.appendChild(option);
+  <script src="sideEffects.js"></script>
+  <script>
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+      document.getElementById(id).style.display = 'block';
     }
-  });
-  alert("تم تعديل الأدوية");
-};
-</script>
-</body>
-</html>    }
-  }
-  populateDrugs();
-  alert("تم تعديل الأدوية");
-}
-</script>
+
+    function calculateDose() {
+      const weight = parseFloat(document.getElementById("weight").value);
+      const age = parseInt(document.getElementById("age").value);
+      const unit = document.getElementById("ageUnit").value;
+      if (!weight || !age) { alert("أدخل جميع القيم"); return; }
+
+      let ageInYears = unit === "days" ? age / 365 : unit === "months" ? age / 12 : age;
+
+      // معادلة افتراضية
+      let dose = weight * 2;  
+      document.getElementById("result").innerText = `✅ الجرعة الموصى بها: ${dose.toFixed(2)} ملغ`;
+
+      // الأعراض الجانبية
+      if (sideEffects["Propofol"]) {
+        let se = sideEffects["Propofol"];
+        document.getElementById("side-effects").innerHTML = `<h3>⚠️ الأعراض الجانبية:</h3><ul>${se.map(s => `<li>${s}</li>`).join("")}</ul>`;
+      }
+    }
+
+    function calculateFluids() {
+      const w = parseFloat(document.getElementById("fluidWeight").value);
+      if (!w) { alert("أدخل الوزن"); return; }
+      let fluids = w * 100;  
+      document.getElementById("fluidsResult").innerText = `💧 حجم السوائل المطلوب: ${fluids} مل`;
+    }
+
+    function calculateAirway() {
+      const age = parseInt(document.getElementById("airwayAge").value);
+      if (!age) { alert("أدخل العمر"); return; }
+      let ett = Math.floor((age / 4) + 4);
+      document.getElementById("airwayResult").innerText = `😷 حجم أنبوب ETT المناسب: ${ett} مم`;
+    }
+
+    function loginAdmin() {
+      const user = document.getElementById("adminUser").value;
+      const pass = document.getElementById("adminPass").value;
+      if (user === "admin" && pass === "mustafa@2006#2") {
+        document.getElementById("adminPanel").style.display = "block";
+      } else {
+        alert("❌ بيانات خاطئة");
+      }
+    }
+
+    function openChat(section) {
+      alert(`فتح دردشة AI لقسم: ${section}`);
+      // ربط Dialogflow أو أي AI هنا
+    }
+  </script>
 </body>
 </html>
