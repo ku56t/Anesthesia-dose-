@@ -136,23 +136,27 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
 import OpenAI from "https://cdn.jsdelivr.net/npm/openai@4.9.0/dist/openai.min.js";
 const openai = new OpenAI({ apiKey: "YOUR_API_KEY_HERE" });
 
-// ==================== قاعدة الأدوية ====================
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+// ==================== قاعدة الأدوية الكاملة ====================
 let drugData = {
-  "Propofol": { "baseDose": 2.5, "unit":"mg/kg", "doses":[{"dose":"2–6 mg/kg IV","side_effects":["انخفاض ضغط الدم","توقف تنفس مؤقت","ألم عند الحقن"],"management":["التهوية الاصطناعية + أكسجين","إبطاء الحقن","استخدام Lidocaine لتقليل الألم"]}]},
+  "Propofol": { "baseDose": 4, "unit":"mg/kg", "doses":[{"dose":"2–6 mg/kg IV (induction)","side_effects":["انخفاض ضغط الدم","توقف تنفس مؤقت","ألم عند الحقن"],"management":["التهوية الاصطناعية + أكسجين","إبطاء الحقن","استخدام Lidocaine لتقليل الألم"]}]},
   "Midazolam": {"baseDose":0.15,"unit":"mg/kg","doses":[{"dose":"0.07–0.2 mg/kg IV/IM","side_effects":["تهدئة مفرطة","انخفاض ضغط","رد فعل عكسي (هياج)"],"management":["Flumazenil كمضاد 0.01 mg/kg IV","تقليل الجرعة أو إيقاف الدواء"]}]},
-  "Fentanyl":{"baseDose":5,"unit":"µg/kg","doses":[{"dose":"2–10 µg/kg IV bolus أو CRI","side_effects":["تثبيط تنفسي","تباطؤ قلب","غثيان / تقيؤ"],"management":["Naloxone كمضاد 0.02–0.04 mg/kg IV","دعم تنفسي وأكسجين"]}]},
-  "Ketamine":{"baseDose":5,"unit":"mg/kg","doses":[{"dose":"5 mg/kg IV أو 10 mg/kg IM","side_effects":["زيادة ضغط الدم","تيبّس عضلي","هلوسة عند الإفاقة"],"management":["Midazolam أو Diazepam لتقليل الهلوسة","مراقبة القلب والتنفس","بيئة هادئة"]}]},
-  "Thiopental":{"baseDose":12.5,"unit":"mg/kg","doses":[{"dose":"10–15 mg/kg IV","side_effects":["تثبيط تنفسي حاد","انخفاض ضغط","تخدير مطوّل عند الجرعة العالية"],"management":["أكسجين + تهوية","دعم ضغط الدم"]}]},
+  "Fentanyl":{"baseDose":5,"unit":"µg/kg","doses":[{"dose":"2–10 µg/kg IV bolus أو CRI 2–10 µg/kg/h","side_effects":["تثبيط تنفسي","تباطؤ قلب","غثيان / تقيؤ"],"management":["Naloxone كمضاد 0.02–0.04 mg/kg IV","دعم تنفسي وأكسجين"]}]},
+  "Ketamine":{"baseDose":7.5,"unit":"mg/kg","doses":[{"dose":"5 mg/kg IV أو 10 mg/kg IM","side_effects":["زيادة ضغط الدم","تيبّس عضلي","هلوسة عند الإفاقة"],"management":["Midazolam أو Diazepam لتقليل الهلوسة","مراقبة القلب والتنفس","بيئة هادئة"]}]},
+  "Thiopental":{"baseDose":12.5,"unit":"mg/kg","doses":[{"dose":"10–15 mg/kg IV (induction)","side_effects":["تثبيط تنفسي حاد","انخفاض ضغط","تخدير مطوّل عند الجرعة العالية"],"management":["أكسجين + تهوية","دعم ضغط الدم"]}]},
   "Etomidate":{"baseDose":0.3,"unit":"mg/kg","doses":[{"dose":"0.2–0.4 mg/kg IV","side_effects":["Myoclonus","كبت الغدة الكظرية","غثيان وتقيؤ"],"management":["Benzodiazepines للحد من Myoclonus","استخدام قصير فقط","مراقبة الكورتيزول"]}]},
-  "Dexmedetomidine":{"baseDose":7.5,"unit":"µg/kg","doses":[{"dose":"5–10 µg/kg IV","side_effects":["بطء قلب","ارتفاع ضغط ثم انخفاض","إقياء"],"management":["Atipamezole كمضاد 50 µg/kg IM","مراقبة قلبية دقيقة"]}]},
-  "Isoflurane":{"baseDose":1.45,"unit":"% MAC","doses":[{"dose":"MAC 1.3–1.6%","side_effects":["انخفاض ضغط","كبت تنفسي","تحسس عضلة القلب للأدرينالين"],"management":["تعديل تركيز الغاز","دعم التنفس والضغط"]}]},
-  "Succinylcholine":{"baseDose":1.5,"unit":"mg/kg","doses":[{"dose":"1–2 mg/kg IV","side_effects":["شلل عضلي مؤقت","Hyperkalemia","Malignant Hyperthermia"],"management":["تهوية اصطناعية إلزامية","Dantrolene عند MH","تجنب في حروق أو إصابات عضلية"]}]},
-  "Lidocaine":{"baseDose":3,"unit":"mg/kg","doses":[{"dose":"2–4 mg/kg IV bolus أو CRI","side_effects":["تشنجات","انخفاض ضغط","بطء قلب"],"management":["إيقاف التسريب فوراً","Benzodiazepines لعلاج التشنجات","دعم الضغط والسوائل"]}]},
-  "Bupivacaine":{"baseDose":2,"unit":"mg/kg","doses":[{"dose":"2 mg/kg كحد أقصى","side_effects":["سمية قلبية","تشنجات","تثبيط تنفسي"],"management":["Intralipid Therapy 20%","CPR ودعم تنفسي"]}]}
+  "Dexmedetomidine":{"baseDose":7.5,"unit":"µg/kg","doses":[{"dose":"5–10 µg/kg IM أو IV","side_effects":["بطء قلب (Bradycardia)","ارتفاع ضغط ثم انخفاض","إقياء"],"management":["Atipamezole كمضاد 50 µg/kg IM","مراقبة قلبية دقيقة"]}]},
+  "Isoflurane":{"baseDose":1.45,"unit":"% MAC","doses":[{"dose":"MAC 1.3–1.6%","side_effects":["انخفاض ضغط جرعة-معتمد","كبت تنفسي","تحسس عضلة القلب للأدرينالين"],"management":["تعديل تركيز الغاز","دعم التنفس والضغط"]}]},
+  "Succinylcholine":{"baseDose":1.5,"unit":"mg/kg","doses":[{"dose":"1–2 mg/kg IV","side_effects":["شلل عضلي كامل مؤقت","Hyperkalemia","Malignant Hyperthermia (نادر)"],"management":["تهوية اصطناعية إلزامية","Dantrolene في حال حدوث MH","تجنّب في مرضى الحروق أو إصابات العضلات"]}]},
+  "Lidocaine":{"baseDose":3,"unit":"mg/kg","doses":[{"dose":"2–4 mg/kg IV bolus أو CRI 25–50 µg/kg/min","side_effects":["تشنجات","انخفاض ضغط","بطء قلب"],"management":["إيقاف التسريب فوراً","Benzodiazepines لعلاج التشنجات","دعم الضغط والسوائل"]}]},
+  "Bupivacaine":{"baseDose":2,"unit":"mg/kg","doses":[{"dose":"2 mg/kg كحد أقصى (موضعي)","side_effects":["سمية قلبية (arrhythmias)","تشنجات","تثبيط تنفسي عند الحقن IV بالخطأ"],"management":["Intralipid Therapy 20% (1.5 ml/kg bolus)","CPR ودعم تنفسي"]}]}
 };
 
-// ==================== عرض الأدوية ====================
+// ==================== عرض الأدوية في Select ====================
 const drugSelect = document.getElementById('drugDose');
+drugSelect.innerHTML = "";
 for(let drug in drugData){
   let opt = document.createElement('option');
   opt.value = drug;
@@ -166,7 +170,7 @@ const diseaseDiv = document.getElementById('diseaseDiv');
 patientHealth.addEventListener('change', ()=>{diseaseDiv.style.display = patientHealth.value==='unhealthy'?'block':'none';});
 function getSelectedCondition(){return patientHealth.value==='healthy'?'healthy':document.getElementById('patientDisease').value;}
 
-// ==================== تعديل الجرعة ====================
+// ==================== تعديل الجرعة حسب الحالة ====================
 function adjustDoseByCondition(dose, unit, condition){
   let factor=1;
   switch(condition){
@@ -190,12 +194,16 @@ document.getElementById('calcDose').addEventListener('click', ()=>{
   let data=drugData[drug];
   let adjustedDose=adjustDoseByCondition(data.baseDose*weight,data.unit,condition);
   document.getElementById('doseResult').innerHTML=`<b>الجرعة:</b> ${adjustedDose}`;
+  // عرض الأعراض الجانبية
   let effHTML='';
   data.doses[0].side_effects.forEach((se,i)=>{
     effHTML+=`<div class="sideEffect"><b>عرض جانبي:</b> ${se}<br><b>التعامل:</b> ${data.doses[0].management[i]||''}</div>`;
   });
   document.getElementById('doseEffects').innerHTML=effHTML;
 });
+
+});
+</script>
 
 // ==================== حساب السوائل والدم ====================
 document.getElementById('calcFluids').addEventListener('click', ()=>{
