@@ -268,7 +268,7 @@ document.getElementById('adminSave').onclick = ()=>{
     let val = document.getElementById('adminEdit').value.split('\n');
     val.forEach(line=>{
         let [drug,dose,se,mgmt] = line.split(',');
-        if(drug && dose){drugData[drug]={doses:[{dose,dose,side_effects:[se],management:[mgmt]}]};}
+        if(drug && dose){drugData[drug]={doses:[{dose: dose, side_effects:[se], management:[mgmt]}]};
     });
     alert('تم حفظ التعديلات مؤقتاً');
 };
