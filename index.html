@@ -24,6 +24,7 @@
 <div class="wrap">
   <h1>🚑 نظام حساب جرعات التخدير - متكامل</h1>
 
+  <!-- أزرار التنقل -->
   <div class="row">
     <button class="btn" id="showDose">حساب الجرعات</button>
     <button class="btn" id="showFluids">حساب السوائل والدم</button>
@@ -31,6 +32,7 @@
     <button class="btn" id="showAdmin">لوحة التحكم</button>
   </div>
 
+  <!-- قسم الجرعات -->
   <div class="panel" id="panelDose" style="display:none">
     <h2>💉 حساب جرعات التخدير</h2>
     <div class="grid">
@@ -61,6 +63,7 @@
     </div>
 
     <hr style="margin:12px 0">
+
     <h3>💬 شات القسم</h3>
     <div class="chatBox" id="doseChat"></div>
     <textarea id="doseChatInput" placeholder="اكتب سؤالك هنا..." style="margin-top:8px"></textarea>
@@ -69,6 +72,7 @@
     </div>
   </div>
 
+  <!-- قسم السوائل -->
   <div class="panel" id="panelFluids" style="display:none">
     <h2>💧 حساب السوائل والدم</h2>
     <div class="grid">
@@ -103,6 +107,7 @@
     </div>
   </div>
 
+  <!-- قسم اللارنغوسكوب/ETT -->
   <div class="panel" id="panelAirway" style="display:none">
     <h2>😷 اللارنغوسكوب و ETT</h2>
     <div class="grid">
@@ -137,6 +142,7 @@
     </div>
   </div>
 
+  <!-- لوحة التحكم البسيطة -->
   <div class="panel" id="panelAdmin" style="display:none">
     <h2>🔧 لوحة التحكم (مالك)</h2>
     <label>كلمة مرور المالك
@@ -158,88 +164,162 @@
 
 </div>
 
-<script>
-// ---------- وظائف عامة ----------
-const panels = { dose: document.getElementById('panelDose'), fluids: document.getElementById('panelFluids'), airway: document.getElementById('panelAirway'), admin: document.getElementById('panelAdmin') };
-function hideAll(){ Object.values(panels).forEach(p=>p.style.display='none'); }
-document.getElementById('showDose').addEventListener('click',()=>{ hideAll(); panels.dose.style.display='block'; });
-document.getElementById('showFluids').addEventListener('click',()=>{ hideAll(); panels.fluids.style.display='block'; });
-document.getElementById('showAirway').addEventListener('click',()=>{ hideAll(); panels.airway.style.display='block'; });
-document.getElementById('showAdmin').addEventListener('click',()=>{ hideAll(); panels.admin.style.display='block'; });
+<script type="module">
+  // ---------- قاعدة الأدوية والأعراض ----------
+  const sideEffectsData = {
+    "propofol": [
+      { dosePerKg: 2.0, side: "انخفاض ضغط الدم", treatment: "رفع القدمين، إبطاء الحقن، محلول وريدي" },
+      { dosePerKg: 2.0, side: "تثبيط تنفسي", treatment: "مراقبة التنفس، دعم أكسجين، تجهيز الأدوات التنفسية" },
+      { dosePerKg: 2.0, side: "غثيان/قيء بعد العملية", treatment: "أدوية مضادة للغثيان (ondansetron)" }
+    ],
+    "midazolam": [
+      { dosePerKg: 0.1, side: "نعاس/تخدير مفرط", treatment: "مراقبة التنفس والوظائف الحيوية، تقليل الجرعة" },
+      { dosePerKg: 0.1, side: "ارتخاء عضلي", treatment: "مراقبة الحركات التنفسية، دعم تنفسي عند الحاجة" }
+    ],
+    "fentanyl": [
+      { dosePerKg: 0.002, side: "تثبيط تنفسي شديد", treatment: "دعم الأكسجين، نالوكسون إذا لزم، مراقبة صفة التنفس" },
+      { dosePerKg: 0.002, side: "غثيان/قيء", treatment: "مضادات القيء" },
+      { dosePerKg: 0.002, side: "حكة", treatment: "مضادات هستامين عند الضرورة" }
+    ],
+    "ketamine": [
+      { dosePerKg: 1.5, side: "هلوسة/كوابيس نفسية", treatment: "استخدام بنزوديازيبين كمضاد (مثلاً midazolam) ومحيط هادئ" },
+      { dosePerKg: 1.5, side: "ارتفاع ضغط الدم ومعدل ضربات القلب", treatment: "مراقبة الضغط، أدوية خافضة عند الحاجة" },
+      { dosePerKg: 1.5, side: "زيادة إفراز اللعاب", treatment: "مُقَِلّات الإفراز (glycopyrrolate) عند الحاجة" }
+    ]
+  };
 
-// بيانات تجريبية
-let sideEffectsData = { propofol:[{dosePerKg:2,side:'دوخة',treatment:'رفع القدم'}], midazolam:[{dosePerKg:0.1,side:'نعاس',treatment:'مراقبة'}] };
+  // ---------- عناصر التحكم ----------
+  const panels = {
+    dose: document.getElementById('panelDose'),
+    fluids: document.getElementById('panelFluids'),
+    airway: document.getElementById('panelAirway'),
+    admin: document.getElementById('panelAdmin')
+  };
 
-// ملء الأدوية
-function populateDrugs(){
-  const drugSelect=document.getElementById('drugDose');
-  drugSelect.innerHTML=''; Object.keys(sideEffectsData).forEach(k=>{ const opt=document.createElement('option'); opt.value=k; opt.textContent=k; drugSelect.appendChild(opt); });
-}
-populateDrugs();
+  function hideAll(){ Object.values(panels).forEach(p => p.style.display = 'none'); }
 
-// تحويل العمر
-function ageToYears(value,unit){ const v=parseFloat(value); if(isNaN(v)||v<0) return NaN; if(unit==='years') return v; if(unit==='months') return v/12; if(unit==='days') return v/365; return NaN; }
+  document.getElementById('showDose').addEventListener('click', ()=> { hideAll(); panels.dose.style.display='block'; });
+  document.getElementById('showFluids').addEventListener('click', ()=> { hideAll(); panels.fluids.style.display='block'; });
+  document.getElementById('showAirway').addEventListener('click', ()=> { hideAll(); panels.airway.style.display='block'; });
+  document.getElementById('showAdmin').addEventListener('click', ()=> { hideAll(); panels.admin.style.display='block'; });
 
-// حساب الجرعات
-document.getElementById('calcDose').addEventListener('click',()=>{
-  const w=parseFloat(document.getElementById('weightDose').value);
-  const ageVal=document.getElementById('ageDose').value;
-  const ageUnit=document.getElementById('ageUnitDose').value;
-  const drug=document.getElementById('drugDose').value;
-  const resDiv=document.getElementById('doseResult');
-  const effectsDiv=document.getElementById('doseEffects');
-  resDiv.innerHTML=''; effectsDiv.innerHTML='';
-  if(!drug){ alert('اختر دواءً'); return; }
-  if(isNaN(w)||w<=0){ alert('أدخل وزن صحيح'); return; }
-  const ageYears=ageToYears(ageVal,ageUnit); if(isNaN(ageYears)){ alert('أدخل عمر صحيح'); return; }
-  const list=sideEffectsData[drug]; if(!list||list.length===0){ resDiv.textContent='لا توجد بيانات لهذا الدواء'; return; }
-  const referenceDose=list[0].dosePerKg;
-  const totalDose=w*referenceDose;
-  resDiv.innerHTML=`<strong>الجرعة المرجعية (${referenceDose} ملغ/كغ):</strong> ${totalDose.toFixed(2)} ملغ`;
-  const shown=new Set();
-  list.forEach(item=>{ const dpkg=Number(item.dosePerKg); const doseForThis=(w*dpkg).toFixed(2); const key=`${item.side}||${item.treatment}||${doseForThis}`; if(shown.has(key)) return; shown.add(key); effectsDiv.innerHTML+=`<div class="sideEffect"><div><strong>جرعة مرتبطة:</strong> ${doseForThis} ملغ</div><div><strong>العرض:</strong> ${item.side}</div><div><strong>العلاج المقترح:</strong> ${item.treatment}</div></div>`; });
-});
+  // ---------- قائمة الأدوية ----------
+  const drugSelect = document.getElementById('drugDose');
+  function populateDrugs(){
+    drugSelect.innerHTML = '';
+    const keys = Object.keys(sideEffectsData);
+    if(keys.length===0){
+      const opt=document.createElement('option'); opt.value=''; opt.textContent='لا توجد أدوية في القاعدة'; drugSelect.appendChild(opt);
+    } else {
+      keys.forEach(k=>{
+        const opt=document.createElement('option'); opt.value=k; opt.textContent=k; drugSelect.appendChild(opt);
+      });
+    }
+  }
+  populateDrugs();
 
-// السوائل
-document.getElementById('calcFluids').addEventListener('click',()=>{
-  const w=parseFloat(document.getElementById('weightFluids').value);
-  const ageVal=document.getElementById('ageFluids').value;
-  const ageUnit=document.getElementById('ageUnitFluids').value;
-  const out=document.getElementById('fluidsResult'); out.innerHTML='';
-  if(isNaN(w)||w<=0){ alert('أدخل وزن صحيح'); return; }
-  const ageYears=ageToYears(ageVal,ageUnit); if(isNaN(ageYears)){ alert('أدخل عمر صحيح'); return; }
-  const maintenance=(w*30).toFixed(0);
-  const bloodLiters=((w*70)/1000).toFixed(2);
-  out.innerHTML=`<div><strong>كمية السوائل المبدئية:</strong> ${maintenance} مل/اليوم</div><div><strong>حجم الدم التقريبي:</strong> ${bloodLiters} لتر</div>`;
-});
+  function ageToYears(value,unit){
+    const v=parseFloat(value);
+    if(isNaN(v)||v<0) return NaN;
+    if(unit==='years') return v;
+    if(unit==='months') return v/12;
+    if(unit==='days') return v/365;
+    return NaN;
+  }
 
-// اللارنغوسكوب
-document.getElementById('calcAirway').addEventListener('click',()=>{
-  const ageVal=document.getElementById('ageAirway').value;
-  const ageUnit=document.getElementById('ageUnitAirway').value;
-  const w=parseFloat(document.getElementById('weightAirway').value);
-  const out=document.getElementById('airwayResult'); out.innerHTML='';
-  const ageYears=ageToYears(ageVal,ageUnit); if(isNaN(ageYears)){ alert('أدخل عمر صحيح'); return; }
-  let bladeSize='',ettSize='';
-  if(ageYears<1){ bladeSize='حجم 0'; ettSize='3.0-3.5 mm'; }
-  else if(ageYears<2){ bladeSize='حجم 1'; ettSize='3.5-4.0 mm'; }
-  else if(ageYears<5){ bladeSize='حجم 2'; ettSize='4.0-4.5 mm'; }
-  else if(ageYears<12){ bladeSize='حجم 3'; ettSize='4.5-5.5 mm'; }
-  else{ bladeSize='حجم 4 (بالغ)'; ettSize=`${Math.floor(ageYears/4+4)} mm`; }
-  if(!isNaN(w)&&w>0){ out.innerHTML=`<div><strong>شفرة اللارنغو:</strong> ${bladeSize}</div><div><strong>ETT مقترح:</strong> ${ettSize}</div><div class="muted">ملاحظة: استخدم تقديرات الوزن للأطفال والرضع.</div>`; }
-  else { out.innerHTML=`<div><strong>شفرة اللارنغو:</strong> ${bladeSize}</div><div><strong>ETT مقترح:</strong> ${ettSize}</div>`; }
-});
+  // ---------- حساب الجرعة ----------
+  document.getElementById('calcDose').addEventListener('click', ()=>{
+    const w=parseFloat(document.getElementById('weightDose').value);
+    const ageVal=document.getElementById('ageDose').value;
+    const ageUnit=document.getElementById('ageUnitDose').value;
+    const drug=document.getElementById('drugDose').value;
 
-// شاتات
-function appendChat(boxId, role, text){ const box=document.getElementById(boxId); const p=document.createElement('div'); p.style.margin='6px 0'; p.innerHTML=`<strong>${role}:</strong> ${text}`; box.appendChild(p); box.scrollTop=box.scrollHeight; }
-document.getElementById('doseChatSend').addEventListener('click',()=>{ const input=document.getElementById('doseChatInput'); const text=input.value.trim(); if(!text) return; appendChat('doseChat','أنت',text); appendChat('doseChat','AI','رد افتراضي: يرجى مراجعة السجل الطبي.'); input.value=''; });
-document.getElementById('fluidsChatSend').addEventListener('click',()=>{ const input=document.getElementById('fluidsChatInput'); const text=input.value.trim(); if(!text) return; appendChat('fluidsChat','أنت',text); appendChat('fluidsChat','AI','رد افتراضي: تحقق من السوائل والعلامات الحيوية.'); input.value=''; });
-document.getElementById('airwayChatSend').addEventListener('click',()=>{ const input=document.getElementById('airwayChatInput'); const text=input.value.trim(); if(!text) return; appendChat('airwayChat','أنت',text); appendChat('airwayChat','AI','رد افتراضي: استخدم الحجم المقترح بعناية.'); input.value=''; });
+    if(isNaN(w)||w<=0){ alert('أدخل وزن صحيح'); return; }
+    if(!drug || !sideEffectsData[drug]){ alert('اختر دواء صحيح'); return; }
 
-// لوحة التحكم
-document.getElementById('adminLogin').addEventListener('click',()=>{ const pass=document.getElementById('adminPass').value; if(pass==='mustafa@2006#2'){ document.getElementById('adminArea').style.display='block'; alert('تم تسجيل الدخول كمالك'); } else alert('كلمة مرور خاطئة'); });
-document.getElementById('adminSave').addEventListener('click',()=>{ const data=document.getElementById('adminEdit').value.trim(); if(!data){ alert('أدخل بيانات'); return; } const lines=data.split('\n'); lines.forEach(line=>{ const parts=line.split(','); if(parts.length>=4){ const [drug,dosePerKg,side,treatment]=parts; if(!sideEffectsData[drug]) sideEffectsData[drug]=[]; sideEffectsData[drug].push({dosePerKg:parseFloat(dosePerKg),side:side.trim(),treatment:treatment.trim()}); } }); populateDrugs(); alert('تم تحديث قاعدة البيانات'); });
+    const effects = sideEffectsData[drug];
+    let totalDose=0;
+    effects.forEach(e=>{ totalDose = e.dosePerKg * w; }); // جرعة واحدة لكل دواء
+    document.getElementById('doseResult').innerHTML = `<strong>الجرعة الموصى بها:</strong> ${totalDose.toFixed(2)} مل/كغ`;
+
+    // عرض كل الأعراض
+    const effectsDiv = document.getElementById('doseEffects');
+    effectsDiv.innerHTML = '';
+    effects.forEach(e=>{
+      const div = document.createElement('div');
+      div.className='sideEffect';
+      div.innerHTML=`<strong>العرض:</strong> ${e.side}<br><strong>العلاج:</strong> ${e.treatment}`;
+      effectsDiv.appendChild(div);
+    });
+  });
+
+  // ---------- حساب السوائل/الدم ----------
+  document.getElementById('calcFluids').addEventListener('click', ()=>{
+    const w=parseFloat(document.getElementById('weightFluids').value);
+    if(isNaN(w)||w<=0){ alert('أدخل وزن صحيح'); return; }
+    // مثال بسيط: 10 مل/كغ/ساعة
+    const fluidRate = 10*w;
+    document.getElementById('fluidsResult').innerHTML = `<strong>معدل السوائل:</strong> ${fluidRate.toFixed(2)} مل/ساعة`;
+  });
+
+  // ---------- حساب اللارنغوسكوب/ETT ----------
+  document.getElementById('calcAirway').addEventListener('click', ()=>{
+    const age=parseFloat(document.getElementById('ageAirway').value);
+    if(isNaN(age)||age<0){ alert('أدخل عمر صحيح'); return; }
+    let tubeSize=0;
+    if(age<1) tubeSize=3.0;
+    else if(age<2) tubeSize=3.5;
+    else if(age<4) tubeSize=4.0;
+    else if(age<6) tubeSize=4.5;
+    else tubeSize=5 + ((age-6)/4); // تقريب
+    document.getElementById('airwayResult').innerHTML=`الحجم الموصى به للـ ETT: ${tubeSize.toFixed(1)} مم`;
+  });
+
+  // ---------- لوحة التحكم ----------
+  const adminPass = "mustafa@2006#2";
+  document.getElementById('adminLogin').addEventListener('click', ()=>{
+    const val=document.getElementById('adminPass').value;
+    if(val===adminPass){
+      document.getElementById('adminArea').style.display='block';
+      alert('تم تسجيل الدخول');
+      setTimeout(()=>{document.getElementById('adminArea').style.display='none'; alert('تم تسجيل الخروج تلقائياً');},5*60*1000);
+    } else alert('كلمة مرور خاطئة');
+  });
+
+  document.getElementById('adminSave').addEventListener('click', ()=>{
+    const text = document.getElementById('adminEdit').value;
+    const lines=text.split("\n");
+    lines.forEach(l=>{
+      const parts=l.split(",");
+      if(parts.length>=4){
+        const drug=parts[0].trim();
+        const dose=parseFloat(parts[1].trim());
+        const side=parts[2].trim();
+        const treatment=parts[3].trim();
+        if(!sideEffectsData[drug]) sideEffectsData[drug]=[];
+        sideEffectsData[drug].push({dosePerKg:dose, side, treatment});
+      }
+    });
+    populateDrugs();
+    alert('تم حفظ التعديلات');
+  });
+
+  // ---------- شات وهمي لكل قسم ----------
+  function setupChat(inputId, chatId){
+    const input=document.getElementById(inputId);
+    const chat=document.getElementById(chatId);
+    document.getElementById(inputId+'Send').addEventListener('click', ()=>{
+      const msg=input.value.trim(); if(!msg) return;
+      const userDiv=document.createElement('div'); userDiv.innerHTML=`<strong>أنت:</strong> ${msg}`; chat.appendChild(userDiv);
+      input.value='';
+      // رد تلقائي وهمي
+      const botDiv=document.createElement('div'); botDiv.innerHTML=`<strong>AI:</strong> سيتم الرد بناءً على قاعدة البيانات`; chat.appendChild(botDiv);
+      chat.scrollTop=chat.scrollHeight;
+    });
+  }
+  setupChat('doseChatInput','doseChat');
+  setupChat('fluidsChatInput','fluidsChat');
+  setupChat('airwayChatInput','airwayChat');
 </script>
-
 </body>
 </html>
