@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta property="og:image" content="https://ku56t.github.io/Anesthesia-dose-/anesthesia.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:title" content="موقع التخدير الطبي">
-<meta property="og:description" content="حاسبات طبية لجرعات التخدير، السوائل، واللارنغوسكوب.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://ku56t.github.io/Anesthesia-dose-/">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>نظام التخدير الطبي — حاسبة الجرعات</title>
+<title>أكادمية ANS الطبية — حساب الجرعات المتطور</title>
 <style>
   :root{
-    --bg1:#09142a; --bg2:#0b3550; --card:#ffffff; --accent:#0a5275; --glass: rgba(255,255,255,0.08);
+    --bg1:#09142a; --bg2:#0b3550; --card:#ffffff; --accent:#0a5275;
+    --text:#e6f3ff; --muted:#9fcbe0; --glass: rgba(255,255,255,0.04);
+  }
+  [data-theme="light"]{
+    --bg1:#f0f6fb; --bg2:#e8f2f8; --card:#fff; --accent:#0a5275;
+    --text:#062433; --muted:#475b64; --glass: rgba(10,82,117,0.06);
+    color-scheme: light;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Tahoma,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff;min-height:100vh;overflow-x:hidden}
+  body{margin:0;font-family:Tahoma,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--text);min-height:100vh;overflow-x:hidden}
+  /* TOP BANNER above splash bars */
+  .top-banner{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10010;background:linear-gradient(90deg,#072836,#0a5275);padding:14px 22px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5);text-align:center;font-weight:700}
+  .top-banner small{display:block;font-weight:400;opacity:0.9;margin-top:6px}
+
   /* SPLASH */
   #splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;background:linear-gradient(135deg,#071024 0%, #0b2b3a 70%);overflow:hidden}
   .bars-wrap{width:92%;max-width:1000px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
@@ -29,66 +32,64 @@
   .bar b{font-size:20px}
   .bar small{opacity:0.85;color:#d8f0ff}
   .bar .user{font-size:13px;color:#bfe6ff}
-  /* animate bars: appear center then fly out to both sides slowly (5s) */
-  .bar.left  { animation:barOutLeft 5s cubic-bezier(.2,.9,.3,1) forwards; }
-  .bar.center{ animation:barOutBoth 5s cubic-bezier(.2,.9,.3,1) forwards; }
-  .bar.right { animation:barOutRight 5s cubic-bezier(.2,.9,.3,1) forwards; }
 
-  @keyframes barOutLeft {
+  /* hierarchy: top title, then center, then developer last (disappears last) */
+  .bar.top{animation:barOutTop 5s cubic-bezier(.2,.9,.3,1) forwards}
+  .bar.mid{animation:barOutMid 5s cubic-bezier(.2,.9,.3,1) forwards}
+  .bar.dev{animation:barOutDev 6s cubic-bezier(.2,.9,.3,1) forwards}
+
+  @keyframes barOutTop {
     0% { transform:translateX(0); opacity:1;}
-    50% { transform:translateX(0); opacity:1;}
-    100% { transform:translateX(-150%); opacity:0;}
+    60% { transform:translateX(0); opacity:1;}
+    100% { transform:translateX(-140%); opacity:0;}
   }
-  @keyframes barOutRight {
+  @keyframes barOutMid {
     0% { transform:translateX(0); opacity:1;}
-    50% { transform:translateX(0); opacity:1;}
-    100% { transform:translateX(150%); opacity:0;}
+    70% { transform:translateX(0); opacity:1;}
+    100% { transform:translateX(140%); opacity:0;}
   }
-  @keyframes barOutBoth {
+  @keyframes barOutDev {
     0% { transform:translateY(0); opacity:1;}
-    60% { transform:translateY(0); opacity:1;}
+    70% { transform:translateY(0); opacity:1;}
     100% { transform:translateY(-120%); opacity:0;}
   }
 
   .splash-note{color:#bfe6ff;opacity:0.95}
 
-  /* floating decorative bubbles & lights */
+  /* decoration */
   .decoration{position:fixed;inset:0;pointer-events:none;z-index:5}
-  .bubble{
-    position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.14), rgba(255,255,255,0.02));
-    filter:blur(6px);opacity:.6;animation:floatY linear infinite;
-  }
-  @keyframes floatY{
-    0%{transform:translateY(0) translateX(0)}
-    50%{transform:translateY(-60px) translateX(20px)}
-    100%{transform:translateY(0) translateX(0)}
-  }
-  .glow {position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.06), rgba(255,255,255,0));filter:blur(40px);opacity:0.8;mix-blend-mode:screen}
+  .bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.14), rgba(255,255,255,0.02));filter:blur(6px);opacity:.6;animation:floatY linear infinite}
+  @keyframes floatY{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-60px) translateX(20px)}100%{transform:translateY(0) translateX(0)}}
+  .glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.06), rgba(255,255,255,0));filter:blur(40px);opacity:0.8;mix-blend-mode:screen}
 
   /* MAIN APP */
-  #app{display:none;position:relative;z-index:10;padding:28px;max-width:1100px;margin:36px auto}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));border-radius:14px;padding:18px;box-shadow:0 18px 50px rgba(2,6,23,0.6);color:#fff}
+  #app{display:none;position:relative;z-index:10;padding:28px;max-width:1200px;margin:36px auto}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:18px;box-shadow:0 18px 50px rgba(2,6,23,0.6);color:var(--text);}
   h1{margin:0 0 14px;text-align:center;color:var(--accent)}
   .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
   .btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#0ea5a5,#0a5275);color:#fff;cursor:pointer;min-width:140px}
-  .btn:active{transform:translateY(1px)}
+  .btn.secondary{background:linear-gradient(90deg,#6b7280,#0b5f7a)}
   .panel{display:none;margin-top:16px}
-  label{display:block;text-align:right;margin:6px 0;color:#e6f3ff}
-  input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:#fff}
-  .muted{color:#cfe8f7;font-size:13px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+  label{display:block;text-align:right;margin:6px 0;color:var(--text)}
+  input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--text)}
+  .muted{color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
   .sideEffect{background:rgba(255,70,90,0.06);border-left:4px solid rgba(255,70,90,0.9);padding:10px;margin:8px 0;border-radius:8px;color:#ffecec}
   .chatBox{height:140px;overflow:auto;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
-  footer{margin-top:14px;text-align:center;color:#93c1d8;font-size:13px}
+  footer{margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
 
   .controls-row{display:flex;gap:8px;align-items:center}
-  .small-muted{font-size:12px;color:#a9d7ee}
+  .small-muted{font-size:12px;color:var(--muted)}
 
-  /* result styling */
-  .result-box{background:rgba(0,0,0,0.25);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
-  .pill{display:inline-block;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:999px;margin:6px 6px 0 0;color:#dff6ff;font-weight:600}
+  .result-box{background:rgba(0,0,0,0.18);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+  .pill{display:inline-block;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:999px;margin:6px 6px 0 0;color:#dff6ff;font-weight:600}
 
-  /* responsive */
+  /* about modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:10020}
+  .modal .box{background:var(--card);color:var(--text);padding:18px;border-radius:12px;max-width:800px;width:92%}
+  .top-actions{display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px;align-items:center}
+
+  /* small */
   @media (max-width:720px){
     #app{padding:14px}
     .grid{grid-template-columns:1fr}
@@ -97,34 +98,36 @@
 </head>
 <body>
 
+<!-- TOP BANNER -->
+<div class="top-banner" id="topBanner">
+  <div style="font-size:18px">أكادمية ANS الطبية ☆</div>
+  <small>حساب الجرعات المتطور</small>
+</div>
+
 <!-- SPLASH -->
 <div id="splash">
   <div class="bars-wrap" style="width:86%">
-    <div class="bar left">
-      <b>مصطفى مكي عبدالرضا</b>
-      <small>منظم و مطور الموقع</small>
-      <div class="user">@ku56t</div>
-    </div>
-    <div class="bar center">
-      <b>مصطفى احمد عبد شكير</b>
+    <!-- hierarchical: top -> mid -> dev (dev goes last) -->
+    <div class="bar top">
+      <b>المنظم: مصطفى احمد عبد شكير</b>
       <small>منظم</small>
       <div class="user">@871c</div>
     </div>
-    <div class="bar right">
-      <b>محمد طاهر يحيى</b>
+    <div class="bar mid">
+      <b>المنظم: محمد طاهر يحيى</b>
       <small>منظم</small>
       <div class="user">@ans_mz1092</div>
     </div>
+    <div class="bar dev">
+      <b>المطور: مصطفى مكي عبدالرضا</b>
+      <small>منظم و مطور الموقع (المالك)</small>
+      <div class="user">@ku56t</div>
+    </div>
   </div>
   <div class="splash-note">جارِ التحميل — سيتم فتح الواجهة تلقائياً بعد انتهاء الحركة</div>
-  <!-- decorative small sparkles -->
-  <div style="position:absolute;inset:0;pointer-events:none">
-    <div style="position:absolute;left:6%;top:20%;width:14px;height:14px;background:rgba(255,255,255,0.12);border-radius:50%;filter:blur(6px);animation:floatY 6s infinite;"></div>
-    <div style="position:absolute;right:10%;top:35%;width:18px;height:18px;background:rgba(255,255,255,0.08);border-radius:50%;filter:blur(10px);animation:floatY 8s infinite;"></div>
-  </div>
 </div>
 
-<!-- decoration layers -->
+<!-- decoration -->
 <div class="decoration" aria-hidden="true">
   <div class="bubble" style="left:6%;top:12%;width:160px;height:160px;animation-duration:10s"></div>
   <div class="bubble" style="left:78%;top:22%;width:120px;height:120px;animation-duration:12s"></div>
@@ -144,6 +147,9 @@
       <button class="btn" id="showFluids">حساب السوائل والدم</button>
       <button class="btn" id="showAirway">الارنغوسكوب & ETT</button>
       <button class="btn" id="showAdmin">لوحة التحكم</button>
+      <button class="btn secondary" id="aboutBtn">حول الموقع</button>
+      <button class="btn secondary" id="themeToggle">وضع: داكن</button>
+      <button class="btn secondary" id="scanBtn">مسح كيس المريض (كاميرا)</button>
     </div>
 
     <!-- ========== Dose panel ========== -->
@@ -210,6 +216,7 @@
         <div>
           <div id="doseResult" class="result-box muted"><b>النتيجة ستظهر هنا</b></div>
           <div id="doseEffects" style="margin-top:12px"></div>
+          <div id="reductionMethods" style="margin-top:12px"></div>
         </div>
       </div>
 
@@ -241,9 +248,18 @@
             </div>
           </label>
 
+          <label>نوع الفلود
+            <select id="fluidType">
+              <option value="NS">Normal Saline (0.9% NaCl)</option>
+              <option value="LR">Lactated Ringer</option>
+              <option value="D5W">D5W (5% Dextrose)</option>
+              <option value="blood">دم كامل/حزم الدم</option>
+            </select>
+          </label>
+
           <div style="margin-top:8px" class="controls-row">
             <button class="btn" id="calcFluids">احسب السوائل/الدم</button>
-            <div class="small-muted" style="margin-left:8px">تقدير تقريبي فقط</div>
+            <div class="small-muted" style="margin-left:8px">التقدير يتغير بحسب نوع الفلود</div>
           </div>
         </div>
 
@@ -300,31 +316,78 @@
     <!-- ========== Admin panel ========== -->
     <div id="panelAdmin" class="panel">
       <h2>⚙️ لوحة تحكم (Admin)</h2>
-      <label>كلمة المرور
-        <input id="adminPass" type="password" placeholder="كلمة المرور">
-      </label>
-      <div style="margin-top:8px">
-        <button class="btn" id="loginAdmin">دخول</button>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="flex:1;min-width:280px">
+          <label>تسجيل دخول (admin/owner)
+            <input id="adminPass" type="password" placeholder="كلمة المرور">
+          </label>
+          <div style="margin-top:8px">
+            <button class="btn" id="loginAdmin">دخول</button>
+          </div>
+          <div id="adminPanelContent" style="margin-top:12px" class="muted">للمسؤول فقط (سجل دخول أولاً).</div>
+        </div>
+
+        <div style="flex:1;min-width:260px">
+          <label>إدارة مستخدمين (محلي)
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <input id="newUserName" placeholder="اسم مستخدم">
+              <input id="newUserPass" placeholder="كلمة مرور" type="password">
+              <button class="btn" id="addUserBtn">أضف</button>
+            </div>
+          </label>
+          <div style="margin-top:8px">
+            <button class="btn secondary" id="listUsersBtn">عرض المستخدمين</button>
+          </div>
+          <div id="usersList" style="margin-top:8px"></div>
+        </div>
       </div>
-      <div id="adminPanelContent" style="margin-top:12px" class="muted">للمسؤول فقط (وظائف محدودة محلياً)</div>
+
+      <hr style="margin-top:12px">
+      <div class="small-muted">نظام المستخدمين محلي في هذا الملف (LocalStorage). عند نشر حقيقي ستحتاج قاعدة بيانات وخادم آمن.</div>
     </div>
 
     <footer>© نظام التخدير — راجع دوماً الإرشادات السريرية قبل إعطاء أي جرعة</footer>
   </div>
 </div>
 
+<!-- ABOUT modal -->
+<div class="modal" id="aboutModal">
+  <div class="box">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h3 style="margin:0">حول الموقع</h3>
+        <small class="muted">معلومات وتعريف المشروع</small>
+      </div>
+      <div><button class="btn" id="closeAbout">إغلاق</button></div>
+    </div>
+
+    <div style="margin-top:12px;color:var(--muted);line-height:1.6">
+      <p><strong>جرعة تخدير</strong> هو موقع خاص لحساب جرعة تخدير المريض وقد تم اقتراح الفكرة من طلبة المرحلة الثانية والمرحلة الرابعة لقسم تقنيات التخدير - جامعة الكوت سنة 2026 وتم الاتفاق عليها بين 3 طلبة قاموا بإنشاء الموقع. يمكنكم استخدام الموقع بحرية، نتمنى لكم حظاً طيباً.</p>
+      <p>الأشخاص المذكورون في شاشة البداية (الأشرطة):</p>
+      <ul>
+        <li>المطور والمالك: <b>مصطفى مكي عبدالرضا</b> — @ku56t</li>
+        <li>منظم: <b>مصطفى احمد عبد شكير</b> — @871c</li>
+        <li>منظم: <b>محمد طاهر يحيى</b> — @ans_mz1092</li>
+      </ul>
+      <p>ميزات الموقع (موجز): حساب جرعات مع تعديلات حسب العمر وASA والأمراض، حساب السوائل حسب نوع الفلود، اقتراح أحجام لارنغوسكوب وETT، لوحة تحكم للمالك، إمكانية مسح كيس المريض بواسطة الكاميرا (إن كانت متاحة) لقراءة باركود/QR.</p>
+      <p style="margin-top:8px;color:#ffdede"><strong>تنبيه طبي:</strong> هذه أداة مساعدة/تعليمية فقط. لا تعتمد عليها بمفردها لاتخاذ قرارات علاجية دون مراجعة فريق طبي مختص.</p>
+    </div>
+  </div>
+</div>
+
 <script>
-/* ========== Initialization & Splash handling ========== */
+/* ========= Utilities & Initialization ========= */
 document.addEventListener('DOMContentLoaded', ()=>{
 
-  // hide splash after animation (5s) + small delay
-  setTimeout(()=>{
+  // Splash timeline: bars animations run (dev longest), hide splash after 6s
+  setTimeout(()=> {
     const splash = document.getElementById('splash');
     splash.style.transition = 'opacity .6s ease, transform .6s ease';
     splash.style.opacity = '0';
     splash.style.transform = 'translateY(-20px)';
-    setTimeout(()=>{ splash.style.display='none'; document.getElementById('app').style.display='block'; },650);
-  }, 5000); // bars animation duration = 5s
+    setTimeout(()=>{ splash.style.display='none'; document.getElementById('app').style.display='block'; }, 700);
+  }, 6000);
 
   // Panel switching
   const panels = { showDose:'panelDose', showFluids:'panelFluids', showAirway:'panelAirway', showAdmin:'panelAdmin' };
@@ -338,101 +401,105 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // default
   document.getElementById('showDose').click();
 
-  /* ========== Drug database (doses per age category) ========== */
+  /* ========= Drug DB with reduction methods ========= */
   const drugData = {
     "Propofol":{
       dose:{ infant:[2.5,3.0], child:[2.0,2.5], adult:2.5 },
       max:{value:300,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["انخفاض ضغط الدم","توقف تنفس مؤقت","ألم عند الحقن","Propofol infusion syndrome عند تسريب طويل"],
-      management:["سوائل و/أو Vasopressors","تهوية وأكسجين","Lidocaine قبل الحقن","إيقاف الدواء ودعم قلب/كلى"]
+      management:["رفع الساقين، سوائل، Vasopressors عند الحاجة","تهوية ودعم تنفسي","Lidocaine قبل الحقن لتقليل الألم","إيقاف وتسريب بديل + دعم قلبي/كلى"],
+      reduction: "ابدأ بجرعات صغيرة (bolus منخفض)، قلل السرعة، استخدم Vasopressors عند هبوط الضغط."
     },
     "Midazolam":{
       dose:{ infant:[0.05,0.1], child:[0.05,0.2], adult:0.15 },
       max:{value:10,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["تهدئة مفرطة","انخفاض ضغط","رد فعل عكسي"],
-      management:["مراقبة، دعم تنفسي","تقليل الجرعة","Flumazenil كمضاد عند الحاجة"]
+      management:["مراقبة، دعم تنفسي","تقليل الجرعة","Flumazenil كمضاد عند الحاجة"],
+      reduction: "خفض الجرعة تدريجياً، مراقبة التنفس، إبقاء Flumazenil متاحاً."
     },
     "Fentanyl":{
       dose:{ infant:[1,2], child:[2,3], adult:2 }, // µg/kg
       max:{value:300,unit:'µg'}, unitPerKg:'µg/kg',
       side_effects:["تثبيط تنفسي","تباطؤ قلب","غثيان/قيء"],
-      management:["دعم تنفسي، Naloxone","مراقبة قلبية","أدوية مضادة للغثيان"]
+      management:["دعم تنفسي، Naloxone","مراقبة قلبية","مضادات غثيان"],
+      reduction: "تجزئة الجرعة إلى boluses صغيرة أو استخدام CRI بجرعات أقل."
     },
     "Ketamine":{
-      dose:{ infant:[2,3], child:[4,5], adult:1.5 }, // mg/kg (induction varies)
+      dose:{ infant:[2,3], child:[4,5], adult:1.5 },
       max:{value:300,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["زيادة ضغط الدم","تيبس عضلي","هلوسة عند الإفاقة"],
-      management:["مراقبة ضغط الدم","Midazolam للتهدئة","بيئة هادئة"]
+      management:["مراقبة ضغط الدم","Midazolam للتهدئة","بيئة هادئة"],
+      reduction: "التقليل بالتحضيرات، إضافة بنزوديازيبين لتقليل الإفلات الذهني."
     },
     "Thiopental":{
       dose:{ infant:[10,15], child:[10,12.5], adult:12.5 },
       max:{value:400,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["كبت تنفسي","هبوط ضغط"],
-      management:["تهوية/أكسجين","دعم ضغط الدم"]
+      management:["تهوية/أكسجين","دعم ضغط الدم"],
+      reduction: "تقسيم الجرعة و[استخدام بدائل أقل تثبيطاً] إذا أمكن."
     },
     "Etomidate":{
       dose:{ infant:[0.15,0.3], child:[0.2,0.3], adult:0.3 },
       max:{value:40,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["Myoclonus","كبت قشر الكظر"],
-      management:["Benzodiazepine للتقليل","استخدام قصير"]
+      management:["Benzodiazepine للتقليل","استخدام قصير"],
+      reduction: "استخدم أقل جرعة فعالة، أعطاء بنزوديازيبين قبل Etomidate إن مطلوب."
     },
     "Dexmedetomidine":{
-      dose:{ infant:[0.5,1.0], child:[1.0,2.0], adult:1.0 }, // µg/kg (simplified)
+      dose:{ infant:[0.5,1.0], child:[1.0,2.0], adult:1.0 },
       max:{value:200,unit:'µg'}, unitPerKg:'µg/kg',
       side_effects:["بطء قلب","هبوط ضغط"],
-      management:["مراقبة قلبية","علاج داعم حسب الحاجة"]
+      management:["مراقبة قلبية","علاج داعم حسب الحاجة"],
+      reduction: "خفض سرعة التسريب تدريجياً، مراقبة كهربية القلب."
     },
     "Isoflurane":{
       dose:{ infant:[1.3,1.6], child:[1.3,1.6], adult:1.45 },
       max:{value:100,unit:'%MAC'}, unitPerKg:'%MAC',
       side_effects:["هبوط ضغط","كبت تنفسي"],
-      management:["تعديل التركيز، دعم تنفسي ومرضي"]
+      management:["تعديل التركيز، دعم تنفسي"],
+      reduction: "تقليل MAC تدريجياً واستخدام تركيزات منخفضة مع جزيئات مسكنة."
     },
     "Succinylcholine":{
       dose:{ infant:[1,2], child:[1,2], adult:1.5 },
       max:{value:200,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["Hyperkalemia","MH (نادراً)"],
-      management:["تهوية اصطناعية، Dantrolene عند الحاجة"]
+      management:["تهوية اصطناعية، Dantrolene عند الحاجة"],
+      reduction: "تجنب عند حالات خطر Hyperkalemia، استخدم بدائل."
     },
     "Lidocaine":{
       dose:{ infant:[1,2], child:[2,3], adult:3 },
       max:{value:300,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["تشنجات","هبوط ضغط"],
-      management:["إيقاف التسريب، Benzodiazepine للتشنجات"]
+      management:["إيقاف التسريب، Benzodiazepine للتشنجات"],
+      reduction: "تجنب جرعات عالية، استخدم تجزئة وتخطيط للمراقبة."
     },
     "Bupivacaine":{
       dose:{ infant:[1,2], child:[2,2], adult:2 },
       max:{value:200,unit:'mg'}, unitPerKg:'mg/kg',
       side_effects:["سمية قلبية","تشنجات"],
-      management:["Intralipid 20%، دعم قلب/تنفس"]
+      management:["Intralipid 20%، دعم قلب/تنفس"],
+      reduction: "استخدم Lowest effective dose، مراقبة ECG ووجود Intralipid جاهز."
     }
   };
 
-  // populate drugs select
+  // populate drugs
   const drugSelect = document.getElementById('drugDose');
-  for(const d of Object.keys(drugData)){
-    const o = document.createElement('option'); o.value = d; o.textContent = d; drugSelect.appendChild(o);
-  }
+  Object.keys(drugData).forEach(name=>{
+    const o = document.createElement('option'); o.value = name; o.textContent = name; drugSelect.appendChild(o);
+  });
 
-  // disease UI toggle
+  // Disease toggle
   const patientHealth = document.getElementById('patientHealth');
   const diseaseDiv = document.getElementById('diseaseDiv');
   patientHealth.addEventListener('change', ()=> {
     diseaseDiv.style.display = patientHealth.value === 'unhealthy' ? 'block' : 'none';
-    if(patientHealth.value === 'healthy'){
-      document.querySelectorAll('.diseaseChk').forEach(c=>c.checked=false);
-    }
+    if(patientHealth.value === 'healthy') document.querySelectorAll('.diseaseChk').forEach(c=>c.checked=false);
   });
 
-  // ASA factors (conservative multipliers)
+  // ASA & disease factors
   const asaFactors = { I:1.00, II:0.95, III:0.85, IV:0.75, V:0.65 };
+  const diseaseFactors = { diabetes:0.95, heart:0.80, lung:0.85, liver:0.70, kidney:0.75, allergy:0.90, obesity:1.05 };
 
-  // disease multipliers (multiplicative)
-  const diseaseFactors = {
-    diabetes:0.95, heart:0.80, lung:0.85, liver:0.70, kidney:0.75, allergy:0.90, obesity:1.05
-  };
-
-  // helpers
   function toYears(val, unit){
     const v = parseFloat(val);
     if(isNaN(v) || v < 0) return NaN;
@@ -446,29 +513,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(years < 12) return 'child';
     return 'adult';
   }
-  function avgDose(dv){
-    return Array.isArray(dv) ? (dv[0]+dv[1])/2 : dv;
-  }
+  function avgDose(dv){ return Array.isArray(dv) ? (dv[0]+dv[1])/2 : dv; }
 
-  // calculation core
   function calculateTotalDose(drugName, weightKg, ageYears, asaClass, diseases){
     const doc = drugData[drugName];
     if(!doc) return null;
     const cat = ageCategory(ageYears);
-    const perKg = avgDose(doc.dose[cat]); // mg/kg or µg/kg or %MAC (if unitPerKg is %MAC)
+    const perKg = avgDose(doc.dose[cat]);
     if(doc.unitPerKg === '%MAC'){
-      // gas concentration, adjust by ASA/diseases but not by weight
       let factor = asaFactors[asaClass] || 1.0;
       diseases.forEach(d => { if(diseaseFactors[d]) factor *= diseaseFactors[d]; });
       return { value: (perKg * factor).toFixed(2), unit: '% MAC', note: 'تركيز غازي تقريبي' };
     }
-    // numeric total
     let total = perKg * weightKg;
-    // ASA
     total *= (asaFactors[asaClass] || 1.0);
-    // multiply disease factors
     diseases.forEach(d => { if(diseaseFactors[d]) total *= diseaseFactors[d]; });
-    // cap by max if provided
     if(doc.max && typeof doc.max.value === 'number'){
       if(total > doc.max.value) total = doc.max.value;
     }
@@ -487,7 +546,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return `${v} ${unit}`;
   }
 
-  // calculate button action
+  // calculate dose click
   document.getElementById('calcDose').addEventListener('click', ()=>{
     const weight = parseFloat(document.getElementById('weightDose').value);
     const ageVal = parseFloat(document.getElementById('ageDose').value);
@@ -497,48 +556,56 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(!weight || !ageVal || !drug){ alert('الرجاء إدخال الوزن والعمر واختيار الدواء'); return; }
     const ageYears = toYears(ageVal, ageUnit);
     if(isNaN(ageYears)){ alert('ادخل عمراً صحيحاً'); return; }
-    // collect diseases
     let diseases = [];
-    if(document.getElementById('patientHealth').value === 'unhealthy'){
+    if(document.getElementById('patientHealth').value === 'unhealthy')
       document.querySelectorAll('.diseaseChk:checked').forEach(ch=>diseases.push(ch.value));
-    }
     const calc = calculateTotalDose(drug, weight, ageYears, asaClass, diseases);
     const display = formatDose(calc);
-
-    // show result
     const rEl = document.getElementById('doseResult');
     rEl.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill">${drug}</span><span class="pill">الوزن: ${weight} كغ</span><span class="pill">العمر: ${ageVal} ${ageUnit}</span><span class="pill">ASA: ${asaClass}</span></div>
-      <div style="margin-top:10px;font-weight:700;font-size:1.1rem;color:#dff6ff">الجرعة المحسوبة: ${display}</div>
-      <div style="margin-top:8px;color:#cfeffd">(لاحقاً قسّم الجرعة حسب طريقة إعطاء: bolus / CRI / infusion — هذه قيمة كلية تقريبية)</div>`;
+      <div style="margin-top:10px;font-weight:700;font-size:1.05rem;color:#dff6ff">الجرعة المحسوبة: ${display}</div>
+      <div style="margin-top:8px;color:var(--muted)">(قيمة كلية تقريبية — قسّمها حسب bolus / infusion بحسب الحاجة)</div>`;
 
-    // side effects
+    // side effects + reduction method
     const ddata = drugData[drug];
     let effHTML = '';
     ddata.side_effects.forEach((se,i)=>{
       effHTML += `<div class="sideEffect"><b>عرض جانبي:</b> ${se}<br><b>التعامل:</b> ${ddata.management[i] || 'تدبير داعم عام'}</div>`;
     });
+    // reduction
+    effHTML += `<div style="margin-top:8px;padding:10px;border-radius:8px;background:rgba(10,82,117,0.07)"><b>طريقة تخفيف الجرعة / إدارة المخاطر:</b><div style="margin-top:6px">${ddata.reduction || 'تدابير داعمة عامة'}</div></div>`;
     document.getElementById('doseEffects').innerHTML = effHTML;
   });
 
-  // Fluids calculation (simple rules)
+  // fluids with types
   document.getElementById('calcFluids').addEventListener('click', ()=>{
     const w = parseFloat(document.getElementById('weightFluid').value);
     const ageVal = parseFloat(document.getElementById('ageFluid').value) || 0;
     const ageUnit = document.getElementById('ageUnitFluid').value;
+    const type = document.getElementById('fluidType').value;
     if(!w){ alert('أدخل الوزن'); return; }
-    // maintenance simplified: pediatrics vs adults
     const ageYears = toYears(ageVal, ageUnit) || 30;
-    let maintenance;
-    if(ageYears < 1) maintenance = 100 * w; // neonate approx (ml/kg/24h rough)
-    else if(ageYears < 10) maintenance = 50 * w;
-    else maintenance = 30 * w; // adults ~30 ml/kg/day
-    // blood volume estimate
-    const bloodVol = (ageYears < 1 ? 85 : (ageYears < 10 ? 80 : 70)) * w; // ml
-    document.getElementById('fluidResult').innerHTML = `<div><b>سائل صيانة (تقريبي / 24h):</b> ${Math.round(maintenance)} ml</div>
-      <div style="margin-top:6px"><b>حجم دم تقريبي:</b> ${Math.round(bloodVol)} ml</div>`;
+    // maintenance ml/kg/day depending age/type maybe slightly adjusted
+    let basePerKg;
+    if(ageYears < 1) basePerKg = 100;
+    else if(ageYears < 10) basePerKg = 50;
+    else basePerKg = 30;
+    // fluid type modifiers:
+    const typeModifiers = { NS:1.0, LR:1.0, D5W:1.05, blood:0.5 }; // blood counted differently
+    const maintenance = Math.round(basePerKg * w * (typeModifiers[type]||1));
+    let bloodVol = Math.round((ageYears < 1 ? 85 : (ageYears < 10 ? 80 : 70)) * w);
+    // If blood selected, show blood units approx (1 unit ~ 350-450 ml) compute units
+    let bloodInfo = '';
+    if(type === 'blood'){
+      const unitVol = 350;
+      const units = Math.max(1, Math.round(maintenance / unitVol));
+      bloodInfo = `<div style="margin-top:8px"><b>حاجة دم مقترحة (وحدة ≈ ${unitVol} ml):</b> ${units} وحدة (تقريبياً)</div>`;
+    }
+    document.getElementById('fluidResult').innerHTML = `<div><b>سائل صيانة (تقريبي / 24h):</b> ${maintenance} ml (${type})</div>
+      <div style="margin-top:6px"><b>حجم دم تقريبي:</b> ${bloodVol} ml</div>${bloodInfo}`;
   });
 
-  // Airway sizing
+  // airway
   document.getElementById('calcAirway').addEventListener('click', ()=>{
     const ageVal = parseFloat(document.getElementById('ageAirway').value);
     const ageUnit = document.getElementById('ageUnitAirway').value;
@@ -550,24 +617,162 @@ document.addEventListener('DOMContentLoaded', ()=>{
     else if(ageYears < 5){ blade = 'Pediatric blade 1-2'; ett = '4.0 - 4.5 mm'; }
     else if(ageYears < 10){ blade = 'Pediatric blade 2'; ett = '5.0 - 5.5 mm'; }
     else { blade = 'Standard adult blade (3-4)'; ett = '6.0 - 8.0 mm (حسب الجنس والوزن)'; }
-    // if weight available, suggest ETT formula: (age/4)+4 for uncuffed pediatrics
     let ettByAge = '';
     if(ageYears >= 1 && ageYears < 12){
       const e = Math.floor(ageYears/4 + 4);
       ettByAge = ` — طريقة سريعة ETT (uncuffed): ${e}.0 mm`;
     }
-    document.getElementById('airwayResult').innerHTML = `<div><b>شفرة مناسبة:</b> ${blade}</div><div style="margin-top:6px"><b>ETT اقتراح:</b> ${ett}${ettByAge}</div><div style="margin-top:8px;color:#cfeefd">نصائح: تأكد من وجود أدوات الاسترجاع والتهوية وتجهيز مقاسين أكبر/أصغر دائماً.</div>`;
+    document.getElementById('airwayResult').innerHTML = `<div><b>شفرة مناسبة:</b> ${blade}</div><div style="margin-top:6px"><b>ETT اقتراح:</b> ${ett}${ettByAge}</div><div style="margin-top:8px;color:var(--muted)">نصائح: تأكد من وجود أدوات الاسترجاع والتهوية ومقاسين احتياط.</div>`;
   });
 
-  // Admin (local)
+  /* ========= Admin & Users (LocalStorage) ========= */
+  // local users: array of {id,username,password,role,banned}
+  function loadUsers(){ const s = localStorage.getItem('ans_users'); return s?JSON.parse(s):[]; }
+  function saveUsers(u){ localStorage.setItem('ans_users', JSON.stringify(u)); }
+  function genId(){ return 'u-'+Math.random().toString(36).slice(2,10); }
+
+  // ensure owner exists
+  const users = loadUsers();
+  if(!users.find(x=>x.role==='owner')){
+    users.push({ id: genId(), username:'owner', password:'mustafa@2006#2', role:'owner', banned:false });
+    saveUsers(users);
+  }
+
+  // admin login
   document.getElementById('loginAdmin').addEventListener('click', ()=>{
     const pass = document.getElementById('adminPass').value;
-    if(pass === 'mustafa@2006#2'){
-      document.getElementById('adminPanelContent').innerHTML = '<div style="color:#cfe8ff">مرحباً، يمكنك تعديل قاعدة الأدوية في كائن drugData داخل الكود (محلياً).</div>';
-    } else alert('كلمة مرور خاطئة');
+    const u = loadUsers().find(x=>x.role==='owner' && x.password === pass);
+    if(u){ document.getElementById('adminPanelContent').innerHTML = `<div style="color:var(--text)">مرحباً ${u.username} — لوحة تحكم المالك مفعّلة.</div>` + ownerControls(); }
+    else alert('كلمة مرور خاطئة');
   });
 
-  // Chat placeholders
+  // owner controls UI
+  function ownerControls(){
+    return `<div style="margin-top:8px">
+      <button class="btn" id="openManageUsers">إدارة المستخدمين</button>
+      <button class="btn" id="openManageDrugs">تعديل الأدوية (محلي)</button>
+      </div>`;
+  }
+
+  // add user
+  document.getElementById('addUserBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('newUserName').value.trim();
+    const pass = document.getElementById('newUserPass').value.trim();
+    if(!name || !pass){ alert('أدخل اسم وكلمة مرور'); return; }
+    const list = loadUsers();
+    if(list.find(x=>x.username===name)){ alert('المستخدم موجود'); return; }
+    const nu = { id: genId(), username:name, password:pass, role:'user', banned:false };
+    list.push(nu); saveUsers(list);
+    document.getElementById('newUserName').value=''; document.getElementById('newUserPass').value='';
+    alert('تم إضافة المستخدم محلياً (LocalStorage)');
+  });
+
+  // list users
+  document.getElementById('listUsersBtn').addEventListener('click', ()=>{
+    const list = loadUsers();
+    const el = document.getElementById('usersList');
+    if(!list.length){ el.innerHTML='لا مستخدمين'; return; }
+    let html = '<div style="max-height:220px;overflow:auto;padding:6px">';
+    list.forEach(u=>{
+      html += `<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px;border-bottom:1px dashed rgba(255,255,255,0.03)">
+        <div><b>${u.username}</b><div style="font-size:12px;color:var(--muted)">ID: ${u.id} — Role: ${u.role} ${u.banned?'<span style="color:#ffdede"> (محظور)</span>':''}</div></div>
+        <div style="display:flex;gap:6px">
+          ${u.role!=='owner'?`<button class="btn" data-action="ban" data-id="${u.id}">${u.banned?'إلغاء الحظر':'حظر'}</button>`:''}
+          ${u.role!=='owner'?`<button class="btn secondary" data-action="del" data-id="${u.id}">حذف</button>`:''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+
+    // attach actions
+    el.querySelectorAll('button[data-action]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.id; const act = btn.dataset.action;
+        let list = loadUsers();
+        const idx = list.findIndex(x=>x.id===id);
+        if(idx<0) return;
+        if(act==='ban'){ list[idx].banned = !list[idx].banned; saveUsers(list); alert('تم تحديث حالة المستخدم'); document.getElementById('listUsersBtn').click(); }
+        if(act==='del'){ if(confirm('حذف المستخدم؟')){ list.splice(idx,1); saveUsers(list); alert('تم الحذف'); document.getElementById('listUsersBtn').click(); }}
+      });
+    });
+  });
+
+  /* ========= Theme toggle ========= */
+  const themeBtn = document.getElementById('themeToggle');
+  let dark = true;
+  themeBtn.addEventListener('click', ()=>{
+    dark = !dark;
+    if(!dark) { document.documentElement.setAttribute('data-theme','light'); themeBtn.textContent='وضع: فاتح'; }
+    else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent='وضع: داكن'; }
+  });
+
+  /* ========= About Modal ========= */
+  document.getElementById('aboutBtn').addEventListener('click', ()=> document.getElementById('aboutModal').style.display='flex');
+  document.getElementById('closeAbout').addEventListener('click', ()=> document.getElementById('aboutModal').style.display='none');
+
+  /* ========= Scanner (BarcodeDetector if available) ========= */
+  const scanBtn = document.getElementById('scanBtn');
+  let scanning = false;
+  let streamRef = null;
+  scanBtn.addEventListener('click', async ()=>{
+    // open small camera overlay
+    if(scanning) return stopScan();
+    const overlay = document.createElement('div');
+    overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.background='rgba(0,0,0,0.6)'; overlay.style.zIndex=10030; overlay.style.display='flex'; overlay.style.alignItems='center'; overlay.style.justifyContent='center';
+    overlay.innerHTML = `<div style="width:90%;max-width:720px;background:var(--card);color:var(--text);padding:12px;border-radius:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><b>ماسح كيس المريض</b><button id="closeCam" class="btn secondary">إغلاق</button></div>
+      <video id="camVideo" autoplay playsinline style="width:100%;margin-top:8px;border-radius:8px;background:#000"></video>
+      <div id="scanResult" style="margin-top:8px;color:var(--muted)">جارٍ البحث عن رمز...</div>
+    </div>`;
+    document.body.appendChild(overlay);
+    scanning = true;
+    const video = overlay.querySelector('#camVideo');
+    const resultEl = overlay.querySelector('#scanResult');
+    overlay.querySelector('#closeCam').addEventListener('click', ()=> stopScan());
+
+    // try BarcodeDetector API
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio:false });
+      streamRef = stream;
+      video.srcObject = stream;
+      await video.play();
+
+      if(window.BarcodeDetector){
+        const formats = await BarcodeDetector.getSupportedFormats();
+        const detector = new BarcodeDetector({formats});
+        const scanLoop = async ()=>{
+          if(!scanning) return;
+          try{
+            const detections = await detector.detect(video);
+            if(detections && detections.length){
+              resultEl.textContent = 'تم الكشف: ' + detections.map(d=>d.rawValue).join(' | ');
+            } else {
+              resultEl.textContent = 'لم يتم العثور على رمز — حاول تحريك الكاميرا ببطء.';
+            }
+          }catch(e){
+            resultEl.textContent = 'خطأ بالمسح: ' + e.message;
+          }
+          setTimeout(scanLoop, 800);
+        };
+        scanLoop();
+      } else {
+        // fallback: no detector — just show video and message
+        resultEl.textContent = 'BarcodeDetector غير مدعوم في متصفحك. لا يمكن قراءة الكود هنا.';
+      }
+    } catch(err){
+      alert('تعذر الوصول للكاميرا: ' + err.message);
+      stopScan();
+    }
+
+    function stopScan(){
+      scanning = false;
+      if(streamRef){ streamRef.getTracks().forEach(t=>t.stop()); streamRef=null; }
+      overlay.remove();
+    }
+  });
+
+  /* ========= Chat placeholders ========= */
   function setupChat(btnId, chatId, inputId){
     document.getElementById(btnId).addEventListener('click', ()=>{
       const msg = document.getElementById(inputId).value.trim();
@@ -575,8 +780,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       const cb = document.getElementById(chatId);
       cb.innerHTML += `<div style="margin-bottom:6px"><b>أنت:</b> ${msg}</div>`;
       document.getElementById(inputId).value = '';
-      // simple canned reply
-      cb.innerHTML += `<div style="margin-bottom:6px;color:#bfe9ff"><b>AI:</b> هذه إجابة تجريبية. لم يتم تفعيل واجهة OpenAI في هذا الملف المحلي. راجع دائماً التعليمات السريرية.</div>`;
+      cb.innerHTML += `<div style="margin-bottom:6px;color:#bfe9ff"><b>AI:</b> إجابة تجريبية — الواجهة المحلية لا تربط OpenAI. راجع فريقك الطبي.</div>`;
       cb.scrollTop = cb.scrollHeight;
     });
   }
