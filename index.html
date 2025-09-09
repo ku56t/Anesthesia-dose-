@@ -1,563 +1,590 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ANS — نظام حسابات التخدير</title>
-<style>
-  :root{
-    --bg:#0a1124;--panel:#0f1830;--line:#1c2a4f;--text:#e8f0ff;--muted:#9fb1e6;
-    --pri:#3aa6ff;--pri-ink:#00122b;--danger:#ff5470;--danger-ink:#2b0010;--ghost:#152549;
-    --ok:#29d391;--warn:#ffb84d;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:"Tahoma",system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
-  .hidden{display:none!important}
-  a{color:#9ac7ff}
-  .btn{cursor:pointer;padding:11px 16px;border-radius:12px;border:0;font-weight:700;transition:transform .05s}
-  .btn:active{transform:scale(.98)}
-  .btn-primary{background:var(--pri);color:var(--pri-ink)}
-  .btn-danger{background:var(--danger);color:var(--danger-ink)}
-  .btn-ghost{background:#122146;color:#dbe7ff;border:1px solid var(--line)}
-  .btn-chip{background:var(--ghost);color:#cfe1ff;padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 10px 24px rgba(0,0,0,.25)}
-  input,select,textarea{background:#0b1633;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px;width:100%;margin:6px 0}
-  label{font-size:13px;color:var(--muted)}
-  .title{font-size:20px;margin:0 0 8px}
-  .tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
-  .tab{padding:10px 14px;border-radius:12px;background:#0d1a36;color:#cde1ff;cursor:pointer;border:1px solid var(--line)}
-  .tab.active{background:#173069}
-  #chatBox{height:260px;overflow-y:auto;background:#0b1634;padding:10px;border-radius:12px;border:1px solid var(--line)}
-  .msg{margin:6px 0;padding:8px;background:#152c58;border-radius:10px}
-  .chip{background:#162448;padding:6px 10px;border-radius:999px;font-size:12px;margin:2px;display:inline-block;border:1px solid var(--line)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-  .muted{color:var(--muted);font-size:12px}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .col{flex:1 1 220px}
-  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .divider{height:1px;background:var(--line);margin:8px 0}
-  .k{color:#9cc0ff}
-  .toast{position:fixed;bottom:16px;left:16px;background:#10214a;border:1px solid var(--line);color:#dfe9ff;border-radius:12px;padding:10px 14px;z-index:99999}
-  .banner{position:fixed;top:0;left:0;right:0;background:#1b2b57;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px;color:#cfe1ff;z-index:10000}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:#10224a;border:1px solid var(--line);border-radius:999px}
-  #overlay{position:fixed;inset:0;background:rgba(7,17,42,.98);color:#fff;display:none;align-items:center;justify-content:center;z-index:100000}
-</style>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>ANS — نظام حسابات التخدير</title>
+  <meta name="theme-color" content="#0a1124" />
+  <style>
+    :root{
+      --bg:#071227;--surface:#0d1c3a;--panel:#0f2146;--line:#1c2f5c;
+      --txt:#e9f1ff;--muted:#a9bde9;--chip:#172a56;
+      --pri:#3aa6ff;--pri-ink:#00152a;
+      --ok:#2ed390;--warn:#ffb84d;--danger:#ff5470;--danger-ink:#2b0010;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#06102a, #0a1734 35%, #0a1124);
+      color:var(--txt);font-family:Tahoma,Segoe UI,Arial,sans-serif}
+    a{color:#9cc8ff;text-decoration:none}
+    .hidden{display:none!important}
+    .btn{cursor:pointer;border:0;border-radius:12px;padding:11px 16px;font-weight:700;transition:transform .05s}
+    .btn:active{transform:scale(.98)}
+    .btn-primary{background:var(--pri);color:var(--pri-ink)}
+    .btn-ghost{background:#102247;border:1px solid var(--line);color:#dfe9ff}
+    .btn-danger{background:var(--danger);color:var(--danger-ink)}
+    .btn-chip{background:#11224a;color:#cfe1ff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+    .title{margin:0 0 8px;font-size:20px}
+    .muted{color:var(--muted);font-size:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .col{flex:1 1 220px}
+    input,select,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);
+      background:#0b1a39;color:var(--txt);margin:6px 0}
+    textarea{min-height:68px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+    .tab{padding:10px 14px;border-radius:12px;background:#0f224a;border:1px solid var(--line);cursor:pointer}
+    .tab.active{background:#18336c}
+    .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:6px 10px;display:inline-block;margin:3px 3px 0 0;font-size:12px}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .divider{height:1px;background:var(--line);margin:10px 0}
+    #chatBox{height:240px;overflow-y:auto;background:#0b1a39;border:1px solid var(--line);border-radius:12px;padding:10px}
+    .msg{background:#142a58;border:1px solid var(--line);padding:8px;border-radius:10px;margin:6px 0}
+    .toast{position:fixed;left:16px;bottom:16px;background:#0e224b;border:1px solid var(--line);padding:10px 14px;border-radius:12px;z-index:9999}
+    .banner{position:fixed;top:0;left:0;right:0;background:#0e224b;border-bottom:1px solid var(--line);padding:8px 12px;font-size:12px;z-index:10000}
+    .splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 800px at 50% -20%,#122b66 0,#08122c 60%,#050b1a 100%);z-index:99999}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;background:#0f2249;border:1px solid var(--line)}
+    .kbd{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0b1c3a;padding:2px 6px;border-radius:6px;border:1px solid var(--line)}
+    @media (max-width:560px){
+      .btn{padding:10px 12px}
+    }
+  </style>
 </head>
 <body>
 
-<!-- Debug Banner -->
-<div id="dbg" class="banner hidden"></div>
-<div id="overlay"><div style="padding:40px;text-align:center">
-  <h2>⚠️ لم يتم تسجيل الدخول بشكل صحيح</h2>
-  <p>Firebase لم يرجّع مستخدم. جرب فتح الرابط من <b>Chrome/Safari</b> مباشرة (مو من داخل التطبيقات).</p>
-  <p>المضيف الحالي: <b id="hostHere"></b></p>
-</div></div>
-
-<!-- Splash -->
-<div id="splash" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#07112a;z-index:9999">
-  <div class="card" style="max-width:360px;text-align:center">
-    <div style="font-size:28px;margin-bottom:6px">ANS</div>
-    <div class="muted">جاري التحميل...</div>
-  </div>
-</div>
-
-<!-- Login -->
-<div id="loginScreen" class="" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px">
-  <div class="card" style="max-width:420px;width:100%">
-    <h3 class="title">تسجيل الدخول</h3>
-    <label>البريد</label><input id="emailInput" type="email" placeholder="you@example.com" />
-    <label>كلمة المرور</label><input id="passInput" type="password" placeholder="••••••••" />
-    <button class="btn btn-primary" id="loginBtn" style="width:100%;margin-top:8px">دخول</button>
-    <div class="divider"></div>
-    <button class="btn btn-ghost" id="googleBtn" style="width:100%">دخول بواسطة Google</button>
-    <div class="muted" style="margin-top:8px">المالك: <b class="k">bama47686@gmail.com</b> (role = owner)</div>
-    <div id="authError" class="muted" style="margin-top:6px;color:#ffb3bf"></div>
-  </div>
-</div>
-
-<!-- App -->
-<div id="app" class="hidden" style="padding:16px;max-width:1200px;margin:auto">
-  <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-    <div>
-      <div style="font-size:18px">نظام حسابات التخدير — ANS</div>
-      <div id="userInfo" class="muted"></div>
-    </div>
-    <div class="toolbar">
-      <button id="btnGoHistory" class="btn btn-chip">📂 السجل</button>
-      <button id="logoutBtn" class="btn btn-danger">تسجيل الخروج</button>
+  <!-- Splash -->
+  <div id="splash" class="splash">
+    <div class="card" style="max-width:420px;text-align:center">
+      <div style="font-size:28px">ANS</div>
+      <div class="muted">جاري التحميل...</div>
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" data-target="panelDose">⚖️ الجرعات</div>
-    <div class="tab" data-target="panelFluids">💧 السوائل</div>
-    <div class="tab" data-target="panelASA">📊 ASA</div>
-    <div class="tab" data-target="panelChat">💬 الشات</div>
-    <div class="tab hidden" id="tabAdmin" data-target="panelAdmin">⚙️ المالك</div>
-    <div class="tab" data-target="panelHistory">🗂️ السجل</div>
-  </div>
-
-  <!-- حساب الجرعات -->
-  <div id="panelDose" class="card">
-    <h3 class="title">⚖️ حساب الجرعات</h3>
-    <div class="row">
-      <div class="col"><label>اسم المريض</label><input id="doseName" placeholder="مثال: أحمد علي" /></div>
-      <div class="col"><label>الوزن (كغ)</label><input id="doseWeight" type="number" placeholder="70" /></div>
-      <div class="col"><label>ملاحظات</label><input id="doseNotes" placeholder="حساسية، أدوية ثابتة..." /></div>
-    </div>
-    <div class="row">
-      <div class="col"><label>الأعراض</label><textarea id="doseSymptoms" rows="2" placeholder="أعراض المريض الحالية"></textarea></div>
-      <div class="col"><label>طرق التخفيف</label><textarea id="doseRelief" rows="2" placeholder="خطط/تعليمات التخفيف"></textarea></div>
-    </div>
-    <div class="toolbar">
-      <button class="btn btn-primary" id="btnDoseCalc">احسب</button>
-      <div id="doseResult" class="row"></div>
-    </div>
-  </div>
-
-  <!-- حساب السوائل -->
-  <div id="panelFluids" class="card hidden">
-    <h3 class="title">💧 حساب السوائل</h3>
-    <div class="row">
-      <div class="col"><label>اسم المريض</label><input id="fluidName" placeholder="مثال: سارة محمد" /></div>
-      <div class="col"><label>الوزن (كغ)</label><input id="fluidWeight" type="number" placeholder="65" /></div>
-    </div>
-    <div class="row">
-      <div class="col"><label>الأعراض</label><textarea id="fluidSymptoms" rows="2" placeholder="عطش، جفاف..."></textarea></div>
-      <div class="col"><label>طرق التخفيف</label><textarea id="fluidRelief" rows="2" placeholder="IV Fluids..."></textarea></div>
-    </div>
-    <div class="toolbar">
-      <button class="btn btn-primary" id="btnFluidCalc">احسب</button>
-      <div id="fluidResult" class="row"></div>
-    </div>
-  </div>
-
-  <!-- ASA -->
-  <div id="panelASA" class="card hidden">
-    <h3 class="title">📊 تقييم ASA</h3>
-    <div class="row">
-      <div class="col"><label>اسم المريض</label><input id="asaName" placeholder="اسم المريض" /></div>
-      <div class="col"><label>العمر</label><input id="asaAge" type="number" placeholder="35" /></div>
-      <div class="col">
-        <label>مرافق</label>
-        <select id="asaCom" multiple style="min-height:104px">
-          <option>لا يوجد</option>
-          <option>سكري غير مضبوط</option>
-          <option>ضغط شديد</option>
-          <option>فشل قلبي</option>
-          <option>قصور كبدي/كلوي</option>
-          <option>حالة إسعافية</option>
-        </select>
+  <!-- Login (Firebase required) -->
+  <div id="loginScreen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px">
+    <div class="card" style="max-width:460px;width:100%">
+      <h3 class="title">تسجيل الدخول</h3>
+      <div class="row">
+        <div class="col">
+          <label class="muted">البريد</label>
+          <input id="emailInput" type="email" placeholder="you@example.com" autocomplete="username"/>
+        </div>
+        <div class="col">
+          <label class="muted">كلمة المرور</label>
+          <input id="passInput" type="password" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="loginBtn">دخول</button>
+        <button class="btn btn-ghost" id="googleBtn">دخول بواسطة Google</button>
+        <span class="pill"><span class="muted">المالك:</span> <b>bama47686@gmail.com</b></span>
+      </div>
+      <div id="authError" class="muted" style="margin-top:8px;color:#ffb3bf"></div>
+      <div class="divider"></div>
+      <div class="muted">
+        إذا ظهرت مشكلة في المتصفح، تأكد أن الدومين <b id="curHost">—</b> مضاف في
+        <span class="kbd">Firebase → Authentication → Settings → Authorized domains</span>
       </div>
     </div>
-    <div class="row">
-      <div class="col"><label>الأعراض</label><textarea id="asaSymptoms" rows="2"></textarea></div>
-      <div class="col"><label>طرق التخفيف</label><textarea id="asaRelief" rows="2"></textarea></div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="hidden" style="padding:16px;max-width:1200px;margin:auto">
+    <!-- Top bar -->
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:18px;font-weight:700">نظام حسابات التخدير — ANS</div>
+        <div id="userInfo" class="muted"></div>
+      </div>
+      <div class="toolbar">
+        <button id="btnGoHistory" class="btn btn-chip">📂 السجل</button>
+        <button id="logoutBtn" class="btn btn-danger">تسجيل الخروج</button>
+      </div>
     </div>
-    <div class="toolbar">
-      <button class="btn btn-primary" id="btnASACalc">تقييم</button>
-      <div id="asaResult" class="row"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-target="panelDose">⚖️ الجرعات</div>
+      <div class="tab" data-target="panelFluids">💧 السوائل</div>
+      <div class="tab" data-target="panelASA">📊 ASA</div>
+      <div class="tab" data-target="panelETT">🫁 ETT & Airway</div>
+      <div class="tab" data-target="panelChat">💬 الشات</div>
+      <div class="tab" data-target="panelHistory">🗂️ السجل</div>
+      <div class="tab hidden" id="tabAdmin" data-target="panelAdmin">⚙️ المالك</div>
+    </div>
+
+    <!-- Dose -->
+    <div id="panelDose" class="card">
+      <h3 class="title">⚖️ حساب الجرعات</h3>
+      <div class="row">
+        <div class="col"><label class="muted">اسم المريض</label><input id="doseName" placeholder="مثال: أحمد علي"/></div>
+        <div class="col"><label class="muted">الوزن (كغ)</label><input id="doseWeight" type="number" placeholder="70"/></div>
+        <div class="col"><label class="muted">ملاحظات</label><input id="doseNotes" placeholder="حساسية/أدوية ثابتة..."/></div>
+      </div>
+      <div class="row">
+        <div class="col"><label class="muted">الأعراض</label><textarea id="doseSymptoms" placeholder="الأعراض الحالية"></textarea></div>
+        <div class="col"><label class="muted">طرق التخفيف</label><textarea id="doseRelief" placeholder="خطة التخفيف/المعالجة"></textarea></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="btnDoseCalc">احسب كل الأدوية الشائعة</button>
+        <span class="muted">Propofol / Fentanyl / Midazolam — قابلة للتوسعة</span>
+      </div>
+      <div id="doseResult" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Fluids -->
+    <div id="panelFluids" class="card hidden">
+      <h3 class="title">💧 حساب السوائل</h3>
+      <div class="row">
+        <div class="col"><label class="muted">اسم المريض</label><input id="fluidName" placeholder="مثال: سارة محمد"/></div>
+        <div class="col"><label class="muted">الوزن (كغ)</label><input id="fluidWeight" type="number" placeholder="65"/></div>
+      </div>
+      <div class="row">
+        <div class="col"><label class="muted">الأعراض</label><textarea id="fluidSymptoms" placeholder="عطش/جفاف..."></textarea></div>
+        <div class="col"><label class="muted">طرق التخفيف</label><textarea id="fluidRelief" placeholder="IV Fluids..."></textarea></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="btnFluidCalc">احسب</button>
+        <span class="muted">حساب تقريبي (30 ml/kg/day)</span>
+      </div>
+      <div id="fluidResult" style="margin-top:8px"></div>
+    </div>
+
+    <!-- ASA -->
+    <div id="panelASA" class="card hidden">
+      <h3 class="title">📊 تقييم ASA</h3>
+      <div class="row">
+        <div class="col"><label class="muted">اسم المريض</label><input id="asaName" placeholder="اسم المريض"/></div>
+        <div class="col"><label class="muted">العمر</label><input id="asaAge" type="number" placeholder="35"/></div>
+        <div class="col">
+          <label class="muted">أمراض مرافقة</label>
+          <select id="asaCom" multiple style="min-height:110px">
+            <option>لا يوجد</option>
+            <option>سكري غير مضبوط</option>
+            <option>ضغط شديد</option>
+            <option>فشل قلبي</option>
+            <option>قصور كبدي/كلوي</option>
+            <option>حالة إسعافية</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col"><label class="muted">الأعراض</label><textarea id="asaSymptoms"></textarea></div>
+        <div class="col"><label class="muted">طرق التخفيف</label><textarea id="asaRelief"></textarea></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="btnASACalc">تقييم</button>
+      </div>
+      <div id="asaResult" style="margin-top:8px"></div>
+    </div>
+
+    <!-- ETT & Airway -->
+    <div id="panelETT" class="card hidden">
+      <h3 class="title">🫁 ETT و أدوات مجرى الهواء</h3>
+      <div class="row">
+        <div class="col"><label class="muted">اسم المريض</label><input id="ettName" placeholder="اسم المريض"/></div>
+        <div class="col"><label class="muted">العمر (سنة)</label><input id="ettAge" type="number" placeholder="6"/></div>
+        <div class="col"><label class="muted">الوزن (كغ) — اختياري</label><input id="ettWeight" type="number" placeholder="20"/></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="btnETTCalc">احسب</button>
+        <span class="muted">للأطفال: الحجم ≈ العمر/4 + 4 (غير مكمم)</span>
+      </div>
+      <div id="ettResult" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Chat -->
+    <div id="panelChat" class="card hidden">
+      <h3 class="title">💬 الشات</h3>
+      <div id="chatBox"></div>
+      <div class="row" style="margin-top:8px">
+        <div class="col"><input id="chatInput" placeholder="اكتب رسالتك..."/></div>
+        <div><button class="btn btn-primary" id="chatSend">إرسال</button></div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div id="panelHistory" class="card hidden">
+      <h3 class="title">🗂️ السجل</h3>
+      <div class="toolbar" style="margin-bottom:8px">
+        <button class="btn btn-chip" id="btnMyHistory">سجلي</button>
+        <button class="btn btn-chip hidden" id="btnAllHistory">كل السجلات (مالك)</button>
+        <input id="historySearch" placeholder="بحث بالاسم/الإيميل/الدواء..." style="min-width:220px"/>
+      </div>
+      <div id="historyList" class="grid"></div>
+    </div>
+
+    <!-- Admin -->
+    <div id="panelAdmin" class="card hidden">
+      <h3 class="title">⚙️ لوحة المالك</h3>
+      <div class="muted" style="margin-bottom:8px">عرض المستخدمين (إيميل + UID + Role) مع الحظر/إلغاء الحظر.</div>
+      <div id="usersList" class="grid"></div>
     </div>
   </div>
 
-  <!-- الشات -->
-  <div id="panelChat" class="card hidden">
-    <h3 class="title">💬 الشات</h3>
-    <div id="chatBox"></div>
-    <div class="row">
-      <div class="col"><input id="chatInput" placeholder="رسالتك..." /></div>
-      <div><button id="chatSend" class="btn btn-primary">إرسال</button></div>
-    </div>
-  </div>
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
 
-  <!-- السجل -->
-  <div id="panelHistory" class="card hidden">
-    <h3 class="title">🗂️ السجل</h3>
-    <div class="toolbar" id="historyToolbar">
-      <button class="btn btn-chip" id="btnMyHistory">سجلي</button>
-      <button class="btn btn-chip hidden" id="btnAllHistory">كل السجلات (مالك)</button>
-      <input id="historySearch" placeholder="بحث بالاسم/الإيميل/الدواء..." style="min-width:220px" />
-    </div>
-    <div id="historyList" class="grid"></div>
-  </div>
+  <script type="module">
+    /******** Firebase *********/
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getAuth, setPersistence, browserLocalPersistence,
+      onAuthStateChanged, signInWithEmailAndPassword,
+      GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import {
+      getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc,
+      serverTimestamp, query, orderBy, where, limit
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-  <!-- لوحة المالك -->
-  <div id="panelAdmin" class="card hidden">
-    <h3 class="title">⚙️ لوحة المالك</h3>
-    <div class="muted" style="margin-bottom:6px">عرض جميع المستخدمين مع إمكانية الحظر/إلغاء الحظر (حسب UID)</div>
-    <div id="usersList" class="grid"></div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast" class="toast hidden"></div>
-
-<script type="module">
-  /*************** Firebase ***************/
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { 
-    getAuth, setPersistence, browserLocalPersistence,
-    onAuthStateChanged, signInWithEmailAndPassword, 
-    GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut 
-  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { 
-    getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, 
-    serverTimestamp, query, orderBy, where, onSnapshot, limit 
-  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZUYrFNedms77FWlksMJV3yCETywoJAZw",
-    authDomain: "anesthesia-dose-262e3.firebaseapp.com",
-    projectId: "anesthesia-dose-262e3",
-    storageBucket: "anesthesia-dose-262e3.appspot.com", // ✅ الصحيح
-    messagingSenderId: "602244448093",
-    appId: "1:602244448093:web:0a8d9905849126086ff2b4",
-    measurementId: "G-SCHMQFCK3J"
-  };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
-
-  // إجبار حفظ الجلسة بالـ localStorage
-  setPersistence(auth, browserLocalPersistence)
-    .then(()=>console.log("✅ Persistence = localStorage"))
-    .catch(err=>console.error("Persistence error:",err));
-
-  /*************** UI helpers ***************/
-  const splash       = document.getElementById("splash");
-  const loginScreen  = document.getElementById("loginScreen");
-  const appEl        = document.getElementById("app");
-  const userInfo     = document.getElementById("userInfo");
-  const tabAdmin     = document.getElementById("tabAdmin");
-  const historyList  = document.getElementById("historyList");
-  const btnAllHistory= document.getElementById("btnAllHistory");
-  const btnMyHistory = document.getElementById("btnMyHistory");
-  const historySearch= document.getElementById("historySearch");
-  const toastEl      = document.getElementById("toast");
-  const authError    = document.getElementById("authError");
-  const dbg          = document.getElementById("dbg");
-  const overlay      = document.getElementById("overlay");
-  const hostHere     = document.getElementById("hostHere");
-  let currentUser=null, currentRole="user", showingAll=false, allHistoryCache=[], myHistoryCache=[];
-
-  function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove("hidden"); setTimeout(()=>toastEl.classList.add("hidden"),3500); }
-  function banner(msg){ dbg.textContent=msg; dbg.classList.remove("hidden"); }
-  setTimeout(()=>splash.classList.add("hidden"),900);
-
-  window.addEventListener("error", (e)=>{ console.error("WindowError:", e.message, e.error); toast("خطأ: "+e.message); });
-  window.addEventListener("unhandledrejection", (e)=>{ console.error("PromiseRejection:", e.reason); toast("وعد مرفوض: "+(e.reason?.message||e.reason)); });
-
-  // Tabs
-  document.querySelectorAll(".tab").forEach(t=>{
-    t.onclick=()=>{
-      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-      t.classList.add("active");
-      ["panelDose","panelFluids","panelASA","panelChat","panelHistory","panelAdmin"]
-        .forEach(id=>document.getElementById(id).classList.add("hidden"));
-      document.getElementById(t.dataset.target).classList.remove("hidden");
+    // === Project config (مهم: storageBucket الصحيح) ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZUYrFNedms77FWlksMJV3yCETywoJAZw",
+      authDomain: "anesthesia-dose-262e3.firebaseapp.com",
+      projectId: "anesthesia-dose-262e3",
+      storageBucket: "anesthesia-dose-262e3.appspot.com",
+      messagingSenderId: "602244448093",
+      appId: "1:602244448093:web:0a8d9905849126086ff2b4",
+      measurementId: "G-SCHMQFCK3J"
     };
-  });
-  document.getElementById("btnGoHistory").onclick=()=>{ document.querySelector('[data-target="panelHistory"]').click(); };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
 
-  /*************** Domain check ***************/
-  (function checkDomain(){
-    const host = location.host;
-    const ok = /(localhost|127\.0\.0\.1|github\.io|render\.com)$/i.test(host);
-    if(!ok){
-      banner("⚠️ قد تكون على دومين غير مضاف في Firebase Authorized domains: "+host);
-      console.warn("Add this domain in Firebase Authorized domains:", host);
-    }
-  })();
+    // Persist session in localStorage (يدعم Chrome/Safari والموبايل)
+    setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-  /*************** Auth ***************/
-  loginBtn.onclick=()=>{
-    const email=emailInput.value.trim();
-    const pass=passInput.value.trim();
-    authError.textContent="";
-    if(!email||!pass){authError.textContent="الرجاء إدخال البريد وكلمة المرور.";return;}
-    signInWithEmailAndPassword(auth,email,pass)
-      .then(()=>toast("تم تسجيل الدخول"))
-      .catch(e=>{
+    // UI refs
+    const splash=document.getElementById("splash");
+    const loginScreen=document.getElementById("loginScreen");
+    const appEl=document.getElementById("app");
+    const userInfo=document.getElementById("userInfo");
+    const authError=document.getElementById("authError");
+    const tabAdmin=document.getElementById("tabAdmin");
+    const btnAllHistory=document.getElementById("btnAllHistory");
+    const btnMyHistory=document.getElementById("btnMyHistory");
+    const historySearch=document.getElementById("historySearch");
+    const historyList=document.getElementById("historyList");
+    const toastEl=document.getElementById("toast");
+    const curHost=document.getElementById("curHost");
+
+    let currentUser=null, currentRole="user", showingAll=false, myHistoryCache=[], allHistoryCache=[];
+
+    curHost.textContent = location.host;
+
+    function toast(m){ toastEl.textContent=m; toastEl.classList.remove("hidden"); setTimeout(()=>toastEl.classList.add("hidden"),3500); }
+    setTimeout(()=>splash.classList.add("hidden"), 900);
+
+    // Tabs
+    document.querySelectorAll(".tab").forEach(t=>{
+      t.onclick=()=>{
+        document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+        t.classList.add("active");
+        ["panelDose","panelFluids","panelASA","panelETT","panelChat","panelHistory","panelAdmin"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+        document.getElementById(t.dataset.target).classList.remove("hidden");
+      };
+    });
+    document.getElementById("btnGoHistory").onclick=()=>{ document.querySelector('[data-target="panelHistory"]').click(); };
+
+    /******** Auth flows ********/
+    loginBtn.onclick=async ()=>{
+      authError.textContent="";
+      const email = emailInput.value.trim();
+      const pass  = passInput.value.trim();
+      if(!email || !pass){ authError.textContent="أدخل البريد وكلمة المرور."; return; }
+      try{
+        await signInWithEmailAndPassword(auth,email,pass);
+        toast("تم تسجيل الدخول");
+      }catch(e){
         console.error(e);
-        authError.textContent = `خطأ: ${e.code.replace("auth/","")} — ${e.message}`;
-      });
-  };
-
-  // Google with Popup → fallback to Redirect if blocked
-  googleBtn.onclick=async ()=>{
-    authError.textContent="";
-    const provider = new GoogleAuthProvider();
-    try{
-      await signInWithPopup(auth, provider);
-      toast("تم تسجيل الدخول بواسطة Google");
-    }catch(e){
-      console.warn("Popup failed, using redirect.", e);
-      authError.textContent = "محاولة تحويل (Redirect) بسبب حجب النوافذ المنبثقة...";
-      await signInWithRedirect(auth, provider);
-    }
-  };
-
-  getRedirectResult(auth).then(res=>{
-    if(res?.user){ toast("تم إكمال تسجيل Google (Redirect)"); }
-  }).catch(e=>{ console.error("Redirect error:", e); toast("Redirect error: "+e.message); });
-
-  logoutBtn.onclick=()=>signOut(auth);
-
-  // <<< المنطق البسيط الذي اشتغل عندك >>>
-  onAuthStateChanged(auth, async (u)=>{
-    console.log("✅ onAuthStateChanged رجّع:", u);
-
-    if(!u){
-      // إذا ماكو مستخدم → أظهر شاشة الدخول
-      loginScreen.classList.remove("hidden");
-      appEl.classList.add("hidden");
-      hostHere.textContent = location.host;
-      overlay.style.display = "flex"; // نعرض نصيحة المتصفح/الدومين
-      return;
-    }
-
-    // إذا دخل المستخدم → أخفي شاشة الدخول وأظهر التطبيق
-    overlay.style.display = "none";
-    loginScreen.classList.add("hidden");
-    appEl.classList.remove("hidden");
-
-    // دور المالك + تحقق الحظر
-    const role = (u.email === "bama47686@gmail.com") ? "owner" : "user";
-    await setDoc(doc(db,"users",u.uid), {
-      uid:u.uid, email:u.email, role, banned:false
-    }, {merge:true});
-    const us = (await getDoc(doc(db,"users",u.uid))).data();
-    if(us?.banned){
-      authError.textContent = "❌ حسابك محظور";
-      await signOut(auth);
-      return;
-    }
-    currentUser = u; currentRole = role;
-    userInfo.textContent = `${u.email} — Role: ${role}`;
-    tabAdmin.classList.toggle("hidden", role!=="owner");
-    btnAllHistory.classList.toggle("hidden", role!=="owner");
-
-    // تحميل البيانات
-    initChat();
-    await loadMyHistory();
-    if(role==="owner"){ loadUsers(); await loadAllHistory(); }
-  });
-
-  /*************** History Save/Load ***************/
-  async function saveHistory(obj){
-    if(!currentUser) return;
-    await addDoc(collection(db,"history"),{
-      ...obj,
-      uid:currentUser.uid,
-      email:currentUser.email,
-      createdAt: serverTimestamp()
-    });
-    await loadMyHistory();
-    if(currentRole==="owner" && showingAll) await loadAllHistory();
-    toast("تم الحفظ في السجل ✅");
-  }
-
-  function fmtDate(ts){
-    if(!ts) return "";
-    const d = ts?.toDate? ts.toDate(): new Date(ts);
-    return d.toLocaleString("ar-IQ");
-  }
-  function cleanKV(o){
-    if(!o) return "—";
-    try{ return Object.entries(o).map(([k,v])=>`${k}: ${v}`).join(" | "); }
-    catch{ return String(o) }
-  }
-
-  function renderHistory(cards){
-    const q = (historySearch.value||"").trim().toLowerCase();
-    historyList.innerHTML="";
-    cards.filter(h=>{
-      if(!q) return true;
-      const hay = JSON.stringify(h).toLowerCase();
-      return hay.includes(q);
-    }).forEach(h=>{
-      const wrap=document.createElement("div");
-      wrap.className="card";
-      wrap.innerHTML = `
-        <div class="row" style="align-items:center;justify-content:space-between">
-          <div><b>🧑‍⚕️ ${h.patientName || "—"}</b></div>
-          <div>${h.type? `<span class="chip">${h.type}</span>`:""}</div>
-        </div>
-        <div class="muted">${fmtDate(h.createdAt)} — ${h.email||""}</div>
-        <div class="divider"></div>
-        ${h.inputs? `<div>📏 <span class="k">${cleanKV(h.inputs)}</span></div>`:""}
-        ${h.result? `<div>💊 <span class="k">${cleanKV(h.result)}</span></div>`:""}
-        ${h.symptoms? `<div>⚠️ <span class="k">${h.symptoms}</span></div>`:""}
-        ${h.relief?   `<div>💡 <span class="k">${h.relief}</span></div>`:""}
-      `;
-      historyList.appendChild(wrap);
-    });
-    if(!historyList.children.length){
-      historyList.innerHTML = `<div class="muted">لا توجد سجلات مطابقة.</div>`;
-    }
-  }
-
-  async function loadMyHistory(){
-    if(!currentUser) return;
-    const qy = query(
-      collection(db,"history"),
-      where("uid","==",currentUser.uid),
-      orderBy("createdAt","desc")
-    );
-    const snap = await getDocs(qy);
-    myHistoryCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    if(!showingAll) renderHistory(myHistoryCache);
-  }
-  async function loadAllHistory(){
-    const qy = query(collection(db,"history"), orderBy("createdAt","desc"), limit(500));
-    const snap = await getDocs(qy);
-    allHistoryCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    if(showingAll) renderHistory(allHistoryCache);
-  }
-  btnMyHistory.onclick = ()=>{ showingAll=false; renderHistory(myHistoryCache); };
-  btnAllHistory.onclick = async ()=>{ if(currentRole!=="owner") return; showingAll=true; if(!allHistoryCache.length) await loadAllHistory(); renderHistory(allHistoryCache); };
-  historySearch.oninput = ()=>{ renderHistory(showingAll? allHistoryCache : myHistoryCache); };
-
-  /*************** Users (Owner) ***************/
-  async function loadUsers(){
-    const snap = await getDocs(collection(db,"users"));
-    const box  = document.getElementById("usersList");
-    box.innerHTML="";
-    snap.forEach(d=>{
-      const u = d.data();
-      const card=document.createElement("div");
-      card.className="card";
-      card.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-          <div>
-            <div><b>${u.email||""}</b></div>
-            <div class="muted">UID: ${u.uid}</div>
-            <div class="muted">Role: ${u.role}</div>
-          </div>
-          <div class="toolbar">
-            <span class="pill" title="الحالة">${u.banned? "🚫 محظور":"✅ فعال"}</span>
-            <button class="btn ${u.banned? "btn-primary":"btn-danger"}" onclick="toggleBan('${u.uid}', ${!!u.banned})">
-              ${u.banned? "إلغاء الحظر":"حظر"}
-            </button>
-          </div>
-        </div>
-      `;
-      box.appendChild(card);
-    });
-  }
-  window.toggleBan = async (uid,cur)=>{
-    await updateDoc(doc(db,"users",uid),{banned:!cur});
-    loadUsers();
-  };
-
-  /*************** Calculators ***************/
-  // جرعات
-  btnDoseCalc.onclick = async ()=>{
-    const w = +doseWeight.value;
-    const name = doseName.value.trim();
-    const notes= doseNotes.value.trim();
-    const sym  = doseSymptoms.value.trim();
-    const rel  = doseRelief.value.trim();
-    if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
-
-    // أمثلة — عدل حسب بروتوكولك
-    const result = {
-      Propofol: `${(2*w).toFixed(0)}–${(3*w).toFixed(0)} mg`,
-      Fentanyl:`${(1*w).toFixed(0)} mcg`,
-      Midazolam:`${(0.1*w).toFixed(1)} mg`
+        authError.textContent = `خطأ: ${e.code?.replace("auth/","")||""} — ${e.message}`;
+      }
     };
-    doseResult.innerHTML =
-      Object.entries(result).map(([k,v])=>`<span class="chip">${k}: ${v}</span>`).join(" ");
+    googleBtn.onclick=async ()=>{
+      authError.textContent="";
+      const provider = new GoogleAuthProvider();
+      try{
+        await signInWithPopup(auth, provider);
+        toast("تم تسجيل الدخول بواسطة Google");
+      }catch(e){
+        // للهواتف/الحجب → Redirect
+        await signInWithRedirect(auth, provider);
+      }
+    };
+    getRedirectResult(auth).then(res=>{
+      if(res?.user) toast("تم إكمال تسجيل Google (Redirect)");
+    }).catch(e=>console.warn("Redirect error:", e));
 
-    await saveHistory({
-      type:"dose",
-      patientName:name,
-      inputs:{weight:w,notes},
-      result,
-      symptoms:sym,
-      relief:rel
+    logoutBtn.onclick=()=>signOut(auth);
+
+    // onAuthStateChanged — الدخول إجباري
+    onAuthStateChanged(auth, async (u)=>{
+      console.log("Auth:", u);
+      if(!u){
+        appEl.classList.add("hidden");
+        loginScreen.classList.remove("hidden");
+        return;
+      }
+      // إذا دخل
+      loginScreen.classList.add("hidden");
+      appEl.classList.remove("hidden");
+
+      // Role + ban gate
+      const role = (u.email === "bama47686@gmail.com") ? "owner" : "user";
+      await setDoc(doc(db,"users",u.uid), { uid:u.uid, email:u.email, role, banned:false }, {merge:true});
+      const us = (await getDoc(doc(db,"users",u.uid))).data();
+      if(us?.banned){
+        authError.textContent = "❌ حسابك محظور";
+        await signOut(auth);
+        return;
+      }
+
+      currentUser = u; currentRole = role;
+      userInfo.textContent = `${u.email} — Role: ${role}`;
+      tabAdmin.classList.toggle("hidden", role!=="owner");
+      btnAllHistory.classList.toggle("hidden", role!=="owner");
+
+      // Init data
+      initChat();
+      await loadMyHistory();
+      if(role==="owner"){ loadUsers(); await loadAllHistory(); }
     });
-  };
 
-  // سوائل
-  btnFluidCalc.onclick = async ()=>{
-    const w = +fluidWeight.value;
-    const name = fluidName.value.trim();
-    const sym  = fluidSymptoms.value.trim();
-    const rel  = fluidRelief.value.trim();
-    if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
-
-    // مثال تقريبي
-    const fluids = `${(w*30).toFixed(0)} ml/day`;
-    fluidResult.innerHTML = `<span class="chip">${fluids}</span>`;
-
-    await saveHistory({
-      type:"fluids",
-      patientName:name,
-      inputs:{weight:w},
-      result:{fluids},
-      symptoms:sym,
-      relief:rel
-    });
-  };
-
-  // ASA
-  btnASACalc.onclick = async ()=>{
-    const age = +asaAge.value;
-    const name= asaName.value.trim();
-    const sel = [...asaCom.selectedOptions].map(o=>o.value);
-    const sym = asaSymptoms.value.trim();
-    const rel = asaRelief.value.trim();
-    if(!name || !age){ toast("الرجاء إدخال اسم المريض والعمر."); return; }
-
-    let score="ASA I";
-    if(sel.includes("فشل قلبي")||sel.includes("قصور كبدي/كلوي")) score="ASA IV";
-    else if(sel.includes("سكري غير مضبوط")||sel.includes("ضغط شديد")) score="ASA III";
-    else if(sel.includes("لا يوجد")||sel.length===0) score="ASA I";
-    else score="ASA II";
-    if(sel.includes("حالة إسعافية")) score += " (E)";
-
-    asaResult.innerHTML = `<span class="chip">${score}</span>`;
-
-    await saveHistory({
-      type:"asa",
-      patientName:name,
-      inputs:{age,comorbidities:sel},
-      result:{score},
-      symptoms:sym,
-      relief:rel
-    });
-  };
-
-  /*************** Chat ***************/
-  function initChat(){
-    const qy = query(collection(db,"chat"), orderBy("time"));
-    onSnapshot(qy, snap=>{
-      const box=document.getElementById("chatBox");
-      box.innerHTML="";
-      snap.forEach(m=>{
-        const d=m.data();
-        const div=document.createElement("div");
-        div.className="msg";
-        div.innerHTML = `<b>${d.email||"مستخدم"}:</b> ${d.text||""}`;
-        box.appendChild(div);
+    /******** History ********/
+    async function saveHistory(rec){
+      if(!currentUser) return;
+      await addDoc(collection(db,"history"), {
+        ...rec,
+        uid: currentUser.uid,
+        email: currentUser.email,
+        createdAt: serverTimestamp()
       });
-      box.scrollTop = box.scrollHeight;
-    });
-  }
-  chatSend.onclick = async ()=>{
-    const text=(chatInput.value||"").trim();
-    if(!text || !currentUser) return;
-    await addDoc(collection(db,"chat"),{
-      uid:currentUser.uid,
-      email:currentUser.email,
-      text,
-      time:serverTimestamp()
-    });
-    chatInput.value="";
-  };
+      await loadMyHistory();
+      if(currentRole==="owner" && showingAll) await loadAllHistory();
+    }
+    function fmtDate(ts){
+      if(!ts) return "";
+      const d = ts?.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleString("ar-IQ");
+    }
+    function kv(o){
+      try{ return Object.entries(o||{}).map(([k,v])=>`<span class="chip">${k}: ${v}</span>`).join(" "); }
+      catch{ return "" }
+    }
+    function renderHistory(list){
+      const q = (historySearch.value||"").trim().toLowerCase();
+      historyList.innerHTML="";
+      list.filter(x=>{
+        if(!q) return true;
+        return JSON.stringify(x).toLowerCase().includes(q);
+      }).forEach(h=>{
+        const card=document.createElement("div");
+        card.className="card";
+        card.innerHTML = `
+          <div class="row" style="align-items:center;justify-content:space-between">
+            <div><b>🧑‍⚕️ ${h.patientName || "—"}</b></div>
+            <div>${h.type? `<span class="pill">${h.type}</span>` : ""}</div>
+          </div>
+          <div class="muted">${fmtDate(h.createdAt)} — ${h.email||""}</div>
+          <div class="divider"></div>
+          ${h.inputs? `<div>📥 ${kv(h.inputs)}</div>`:""}
+          ${h.result? `<div>📤 ${kv(h.result)}</div>`:""}
+          ${h.symptoms? `<div>⚠️ <span class="chip">${h.symptoms}</span></div>`:""}
+          ${h.relief? `<div>💡 <span class="chip">${h.relief}</span></div>`:""}
+        `;
+        historyList.appendChild(card);
+      });
+      if(!historyList.children.length) historyList.innerHTML = `<div class="muted">لا يوجد سجلات.</div>`;
+    }
+    async function loadMyHistory(){
+      if(!currentUser) return;
+      const qy = query(collection(db,"history"), where("uid","==",currentUser.uid), orderBy("createdAt","desc"));
+      const snap = await getDocs(qy);
+      myHistoryCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(!showingAll) renderHistory(myHistoryCache);
+    }
+    async function loadAllHistory(){
+      const qy = query(collection(db,"history"), orderBy("createdAt","desc"), limit(500));
+      const snap = await getDocs(qy);
+      allHistoryCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(showingAll) renderHistory(allHistoryCache);
+    }
+    btnMyHistory.onclick=()=>{showingAll=false; renderHistory(myHistoryCache);};
+    btnAllHistory.onclick=async ()=>{ if(currentRole!=="owner") return; showingAll=true; if(!allHistoryCache.length) await loadAllHistory(); renderHistory(allHistoryCache); };
+    historySearch.oninput=()=>{ renderHistory(showingAll? allHistoryCache : myHistoryCache); };
 
-</script>
+    /******** Users (Owner) ********/
+    async function loadUsers(){
+      const snap = await getDocs(collection(db,"users"));
+      const box  = document.getElementById("usersList");
+      box.innerHTML="";
+      snap.forEach(d=>{
+        const u=d.data();
+        const el=document.createElement("div");
+        el.className="card";
+        el.innerHTML=`
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <div>
+              <div><b>${u.email||""}</b></div>
+              <div class="muted">UID: ${u.uid}</div>
+              <div class="muted">Role: ${u.role}</div>
+            </div>
+            <div class="toolbar">
+              <span class="pill">${u.banned? "🚫 محظور" : "✅ فعال"}</span>
+              <button class="btn ${u.banned? "btn-primary":"btn-danger"}" onclick="toggleBan('${u.uid}', ${!!u.banned})">
+                ${u.banned? "إلغاء الحظر" : "حظر"}
+              </button>
+            </div>
+          </div>
+        `;
+        box.appendChild(el);
+      });
+    }
+    window.toggleBan = async (uid, cur)=>{
+      await updateDoc(doc(db,"users",uid),{banned:!cur});
+      loadUsers();
+    };
+
+    /******** Calculators ********/
+    // Dose — (Propofol / Fentanyl / Midazolam) baseline, قابلة للتوسعة
+    btnDoseCalc.onclick = async ()=>{
+      const name = doseName.value.trim();
+      const w = +doseWeight.value;
+      const notes = (doseNotes.value||"").trim();
+      const symptoms = (doseSymptoms.value||"").trim();
+      const relief = (doseRelief.value||"").trim();
+      if(!name || !w){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
+
+      const result = {
+        Propofol: `${(2*w).toFixed(0)}–${(3*w).toFixed(0)} mg`,
+        Fentanyl: `${(1*w).toFixed(0)} mcg`,
+        Midazolam:`${(0.1*w).toFixed(1)} mg`
+      };
+      doseResult.innerHTML = Object.entries(result).map(([k,v])=>`<span class="chip">${k}: ${v}</span>`).join(" ");
+
+      await saveHistory({
+        type:"dose",
+        patientName:name,
+        inputs:{weight:w,notes},
+        result,
+        symptoms,
+        relief
+      });
+    };
+
+    // Fluids — 30 ml/kg/day (تقريبي)
+    btnFluidCalc.onclick = async ()=>{
+      const name = fluidName.value.trim();
+      const w = +fluidWeight.value;
+      const symptoms=(fluidSymptoms.value||"").trim();
+      const relief=(fluidRelief.value||"").trim();
+      if(!name || !w){ toast("أدخل اسم المريض والوزن."); return; }
+
+      const fluids = `${(30*w).toFixed(0)} ml/day`;
+      fluidResult.innerHTML = `<span class="chip">${fluids}</span>`;
+
+      await saveHistory({
+        type:"fluids",
+        patientName:name,
+        inputs:{weight:w},
+        result:{fluids},
+        symptoms,
+        relief
+      });
+    };
+
+    // ASA — تبسيط منطقي مع (E) للحالات الإسعافية
+    btnASACalc.onclick = async ()=>{
+      const name=asaName.value.trim();
+      const age=+asaAge.value;
+      const com=[...asaCom.selectedOptions].map(o=>o.value);
+      const symptoms=(asaSymptoms.value||"").trim();
+      const relief=(asaRelief.value||"").trim();
+      if(!name || !age){ toast("أدخل اسم المريض والعمر."); return; }
+
+      let score="ASA I";
+      if(com.includes("فشل قلبي")||com.includes("قصور كبدي/كلوي")) score="ASA IV";
+      else if(com.includes("سكري غير مضبوط")||com.includes("ضغط شديد")) score="ASA III";
+      else if(com.includes("لا يوجد")||com.length===0) score="ASA I";
+      else score="ASA II";
+      if(com.includes("حالة إسعافية")) score+=" (E)";
+
+      asaResult.innerHTML=`<span class="chip">${score}</span>`;
+      await saveHistory({
+        type:"asa",
+        patientName:name,
+        inputs:{age,comorbidities:com},
+        result:{score},
+        symptoms,
+        relief
+      });
+    };
+
+    // ETT & Airway — للأطفال
+    btnETTCalc.onclick = async ()=>{
+      const name=ettName.value.trim();
+      const age=+ettAge.value;
+      const w = +ettWeight.value || null;
+      if(!name || !age){ toast("أدخل اسم المريض والعمر."); return; }
+
+      // الحجم غير المكمم: العمر/4 + 4 — المكمم: -0.5
+      const uncuffed = (age/4 + 4).toFixed(1);
+      const cuffed   = (age/4 + 3.5).toFixed(1);
+      const blade    = age<1 ? "Miller 0–1" : age<3 ? "Miller 1 / Macintosh 1–2" : "Macintosh 2–3";
+      const depth    = (age/2 + 12).toFixed(1); // تقديري للأطفال
+
+      const result = { uncuffedETT:uncuffed, cuffedETT:cuffed, blade, depth_cm:depth, weight:w||"—" };
+      ettResult.innerHTML = Object.entries(result).map(([k,v])=>`<span class="chip">${k}: ${v}</span>`).join(" ");
+
+      await saveHistory({
+        type:"airway",
+        patientName:name,
+        inputs:{age,weight:w},
+        result,
+        symptoms:"",
+        relief:""
+      });
+    };
+
+    /******** Chat ********/
+    function initChat(){
+      // تحميل آخر 200 رسالة مرتبة زمنياً
+      const qy = query(collection(db,"chat"), orderBy("time"), limit(200));
+      getDocs(qy).then(snap=>{
+        const box=document.getElementById("chatBox");
+        box.innerHTML="";
+        snap.forEach(m=>{
+          const d=m.data();
+          const div=document.createElement("div");
+          div.className="msg";
+          div.innerHTML = `<b>${d.email||"مستخدم"}:</b> ${d.text||""}`;
+          box.appendChild(div);
+        });
+        box.scrollTop = box.scrollHeight;
+      });
+    }
+    chatSend.onclick = async ()=>{
+      const text=(chatInput.value||"").trim();
+      if(!text || !currentUser) return;
+      await addDoc(collection(db,"chat"),{
+        uid:currentUser.uid,
+        email:currentUser.email,
+        text,
+        time:serverTimestamp()
+      });
+      chatInput.value="";
+      initChat();
+    };
+
+    // Safety: catch unhandled
+    window.addEventListener("error",e=>{console.error("Error:",e.error||e.message);});
+    window.addEventListener("unhandledrejection",e=>{console.error("Rejection:",e.reason);});
+  </script>
 </body>
 </html> 
