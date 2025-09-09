@@ -40,12 +40,19 @@
   .toast{position:fixed;bottom:16px;left:16px;background:#10214a;border:1px solid var(--line);color:#dfe9ff;border-radius:12px;padding:10px 14px;z-index:99999}
   .banner{position:fixed;top:0;left:0;right:0;background:#1b2b57;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px;color:#cfe1ff;z-index:10000}
   .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:#10224a;border:1px solid var(--line);border-radius:999px}
+  /* overlay debug */
+  #overlay{position:fixed;inset:0;background:rgba(7,17,42,.98);color:#fff;display:none;align-items:center;justify-content:center;z-index:100000}
 </style>
 </head>
 <body>
 
 <!-- Debug Banner -->
 <div id="dbg" class="banner hidden"></div>
+<div id="overlay"><div style="padding:40px;text-align:center">
+  <h2>⚠️ لم يتم تسجيل الدخول بشكل صحيح</h2>
+  <p>Firebase لم يرجّع مستخدم. جرب فتح الرابط من <b>Chrome/Safari</b> مباشرة (مو من داخل التطبيقات).</p>
+  <p>المضيف الحالي: <b id="hostHere"></b></p>
+</div></div>
 
 <!-- Splash -->
 <div id="splash" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#07112a;z-index:9999">
@@ -204,7 +211,7 @@
     apiKey: "AIzaSyAZUYrFNedms77FWlksMJV3yCETywoJAZw",
     authDomain: "anesthesia-dose-262e3.firebaseapp.com",
     projectId: "anesthesia-dose-262e3",
-    storageBucket: "anesthesia-dose-262e3.firebasestorage.app",
+    storageBucket: "anesthesia-dose-262e3.appspot.com", // ✅ الصحيح
     messagingSenderId: "602244448093",
     appId: "1:602244448093:web:0a8d9905849126086ff2b4",
     measurementId: "G-SCHMQFCK3J"
@@ -231,11 +238,13 @@
   const toastEl      = document.getElementById("toast");
   const authError    = document.getElementById("authError");
   const dbg          = document.getElementById("dbg");
+  const overlay      = document.getElementById("overlay");
+  const hostHere     = document.getElementById("hostHere");
   let currentUser=null, currentRole="user", showingAll=false, allHistoryCache=[], myHistoryCache=[];
 
   function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove("hidden"); setTimeout(()=>toastEl.classList.add("hidden"),3500); }
   function banner(msg){ dbg.textContent=msg; dbg.classList.remove("hidden"); }
-  setTimeout(()=>splash.classList.add("hidden"),1000);
+  setTimeout(()=>splash.classList.add("hidden"),900);
 
   // Global error traps
   window.addEventListener("error", (e)=>{ console.error("WindowError:", e.message, e.error); toast("خطأ: "+e.message); });
@@ -299,59 +308,57 @@
   logoutBtn.onclick=()=>signOut(auth);
 
   onAuthStateChanged(auth, async (u)=>{
-  console.log("Auth state changed:", u);
+    console.log("Auth state changed:", u);
 
-  if(!u){
-    // 🚨 Debug واضح للموبايل
-    document.body.innerHTML = `
-      <div style="padding:40px;text-align:center;color:white;background:#0a1124;min-height:100vh">
-        <h2>⚠️ لم يتم تسجيل الدخول بشكل صحيح</h2>
-        <p>Firebase لم يرجّع مستخدم.</p>
-        <p>جرب تفتح الرابط من <b>Chrome/Safari</b> مباشرة (مو من داخل التطبيقات مثل تليغرام/فيسبوك).</p>
-        <p>المضيف الحالي: <b>${location.host}</b></p>
-      </div>
-    `;
-    return;
-  }
-
-  // ✅ إذا المستخدم موجود
-  try{
-    currentUser=u;
-    const role=(u.email==="bama47686@gmail.com")?"owner":"user";
-
-    // تحديث مستند المستخدم
-    await setDoc(doc(db,"users",u.uid),{
-      uid:u.uid,
-      email:u.email,
-      role,
-      banned:false
-    },{merge:true});
-
-    const us=(await getDoc(doc(db,"users",u.uid))).data();
-    console.log("User doc:", us);
-
-    if(us?.banned){
-      authError.textContent="تم حظرك من الوصول للتطبيق.";
-      await signOut(auth);
+    if(!u){
+      // 🚨 Debug واضح للموبايل/الدومين
+      hostHere.textContent = location.host;
+      overlay.style.display = "flex"; // نظهر الأوفرلاي بدل مسح الصفحة
+      appEl.classList.add("hidden");
+      loginScreen.classList.remove("hidden");
+      banner("⚠️ لم يتم إرجاع User من Firebase — تحقق من Authorized domains أو افتح الرابط من Chrome/Safari.");
       return;
     }
 
-    currentRole=role;
-    userInfo.textContent=`${u.email} — Role: ${role}`;
-    tabAdmin.classList.toggle("hidden", role!=="owner");
-    btnAllHistory.classList.toggle("hidden", role!=="owner");
+    // ✅ إذا المستخدم موجود
+    try{
+      currentUser=u;
+      const role=(u.email==="bama47686@gmail.com")?"owner":"user";
 
-    loginScreen.classList.add("hidden");
-    appEl.classList.remove("hidden");
+      // تحديث مستند المستخدم
+      await setDoc(doc(db,"users",u.uid),{
+        uid:u.uid,
+        email:u.email,
+        role,
+        banned:false
+      },{merge:true});
 
-    initChat();
-    await loadMyHistory();
-    if(role==="owner"){ loadUsers(); await loadAllHistory(); }
-  }catch(err){
-    console.error("Firestore error:",err);
-    toast("Firestore error: "+err.message);
-  }
-});
+      const us=(await getDoc(doc(db,"users",u.uid))).data();
+      console.log("User doc:", us);
+
+      if(us?.banned){
+        authError.textContent="تم حظرك من الوصول للتطبيق.";
+        await signOut(auth);
+        return;
+      }
+
+      currentRole=role;
+      userInfo.textContent=`${u.email} — Role: ${role}`;
+      tabAdmin.classList.toggle("hidden", role!=="owner");
+      btnAllHistory.classList.toggle("hidden", role!=="owner");
+
+      overlay.style.display = "none";
+      loginScreen.classList.add("hidden");
+      appEl.classList.remove("hidden");
+
+      initChat();
+      await loadMyHistory();
+      if(role==="owner"){ loadUsers(); await loadAllHistory(); }
+    }catch(err){
+      console.error("Firestore error:",err);
+      toast("Firestore error: "+err.message);
+    }
+  });
 
   /*************** History Save/Load ***************/
   async function saveHistory(obj){
@@ -369,7 +376,7 @@
 
   function fmtDate(ts){
     if(!ts) return "";
-    const d = ts.toDate? ts.toDate(): new Date(ts);
+    const d = ts?.toDate? ts.toDate(): new Date(ts);
     return d.toLocaleString("ar-IQ");
   }
 
