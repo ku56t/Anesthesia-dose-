@@ -754,47 +754,77 @@ function stopScanner(){
    For production, replace prompts with nice modal forms.
 */
 
-async function requireLogin(){
-  return new Promise((resolve)=>{
-    // minimal prettier login prompt (loop until logged in or cancelled)
-    (async function askLoop(){
-      // if already logged in, resolve
-      if(auth.currentUser) return resolve(auth.currentUser);
-      const email = prompt('أدخل البريد الإلكتروني للدخول (مثال: البريد الخاص بك):');
-      if(!email){ alert('يجب تسجيل الدخول للوصول'); return askLoop(); }
-      // if owner email and you want auto password prefill, but do not auto-login insecurely
-      const methods = await fetchSignInMethodsForEmail(auth, email).catch(()=>[]);
-      // if user exists, ask for password
-      if(methods && methods.length && methods.includes('password')){
-        const pw = prompt('أدخل كلمة المرور:');
-        if(!pw){ alert('كلمة المرور مطلوبة'); return askLoop(); }
-        try{
-          await signInWithEmailAndPassword(auth, email, pw);
-          return resolve(auth.currentUser);
-        }catch(err){
-          alert('فشل تسجيل الدخول: ' + err.message);
-          return askLoop();
-        }
-      }else{
-        // user does not exist: offer to create account (simple)
-        const create = confirm('لم يتم العثور على حساب بهذا الإيميل. إنشاء حساب جديد بهذا الإيميل؟');
-        if(!create) return askLoop();
-        const pw = prompt('اضع كلمة مرور جديدة للحساب: (أدخل كلمة مرور قوية)');
-        if(!pw){ alert('كلمة المرور مطلوبة لإنشاء حساب'); return askLoop(); }
-        try{
-          const cred = await createUserWithEmailAndPassword(auth, email, pw);
-          // create a users doc with role 'user' unless owner email
-          const role = (email === OWNER_EMAIL) ? 'owner' : 'user';
-          await setDoc(doc(db,'users',cred.user.uid), { email, role, uid:cred.user.uid });
-          return resolve(cred.user);
-        }catch(err){
-          alert('خطأ في إنشاء الحساب: ' + err.message);
-          return askLoop();
-        }
-      }
-    })();
+<!-- Firebase Auth Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } 
+    from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZUYrFNedms77FWlksMJV3yCETywoJAZw",
+    authDomain: "anesthesia-dose-262e3.firebaseapp.com",
+    projectId: "anesthesia-dose-262e3",
+    storageBucket: "anesthesia-dose-262e3.appspot.com",
+    messagingSenderId: "602244448093",
+    appId: "1:602244448093:web:0a8d9905849126086ff2b4",
+    measurementId: "G-SCHMQFCK3J"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // عناصر واجهة تسجيل الدخول
+  const loginDiv = document.createElement("div");
+  loginDiv.id = "loginScreen";
+  loginDiv.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;">
+      <h2>🔐 تسجيل الدخول مطلوب</h2>
+      <input id="email" type="email" placeholder="✉️ البريد" style="margin:6px;padding:8px">
+      <input id="password" type="password" placeholder="🔑 كلمة المرور" style="margin:6px;padding:8px">
+      <button id="loginBtn" style="margin:6px;padding:10px 16px">تسجيل الدخول</button>
+      <button id="googleBtn" style="margin:6px;padding:10px 16px">دخول عبر Google</button>
+      <div id="loginMsg" style="margin-top:10px;color:#f88"></div>
+    </div>
+  `;
+  document.body.prepend(loginDiv);
+
+  // إخفاء التطبيق أولاً
+  const appDiv = document.getElementById("app");
+  appDiv.style.display = "none";
+
+  // زر تسجيل الدخول Email/Password
+  document.getElementById("loginBtn").addEventListener("click", ()=>{
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+    signInWithEmailAndPassword(auth, email, pass).catch(err=>{
+      document.getElementById("loginMsg").innerText = "خطأ: " + err.message;
+    });
   });
-}
+
+  // زر تسجيل الدخول Google
+  document.getElementById("googleBtn").addEventListener("click", ()=>{
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch(err=>{
+      document.getElementById("loginMsg").innerText = "خطأ: " + err.message;
+    });
+  });
+
+  // متابعة حالة المستخدم
+  onAuthStateChanged(auth, (user)=>{
+    if(user){
+      // مسجل ✅
+      loginDiv.style.display = "none";
+      appDiv.style.display = "block";
+    } else {
+      // مو مسجل
+      loginDiv.style.display = "flex";
+      appDiv.style.display = "none";
+    }
+  });
+
+  // تسجيل الخروج (مثلاً ممكن تحط زر)
+  window.logoutUser = ()=> signOut(auth);
+</script>
 
 /* Observe auth state and enforce mandatory login */
 onAuthStateChanged(auth, async (user)=>{
