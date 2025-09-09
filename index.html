@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>أكاديمية ANS — نظام حسابات التخدير</title>
+<title>ANS — نظام حسابات التخدير</title>
 
 <style>
   :root{
@@ -12,6 +12,7 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:"Tahoma",system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
+  a{color:inherit}
   .hidden{display:none!important}
   .btn{cursor:pointer;padding:10px 14px;border-radius:12px;border:0;font-weight:700;transition:transform .05s}
   .btn:active{transform:scale(.98)}
@@ -36,6 +37,7 @@
   .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .divider{height:1px;background:var(--line);margin:8px 0}
   .k{color:#9cc0ff}
+  .toast{position:fixed;bottom:16px;left:16px;background:#10214a;border:1px solid var(--line);color:#dfe9ff;border-radius:12px;padding:10px 14px;z-index:99999}
 </style>
 </head>
 <body>
@@ -57,7 +59,8 @@
     <button class="btn btn-primary" id="loginBtn" style="width:100%;margin-top:8px">دخول</button>
     <div class="divider"></div>
     <button class="btn btn-ghost" id="googleBtn" style="width:100%">دخول بواسطة Google</button>
-    <div class="muted" style="margin-top:8px">المالك: <b class="k">bama47686@gmail.com</b> (role=owner)</div>
+    <div class="muted" style="margin-top:8px">المالك: <b class="k">bama47686@gmail.com</b> (role = owner)</div>
+    <div id="authError" class="muted" style="margin-top:6px;color:#ffb3bf"></div>
   </div>
 </div>
 
@@ -97,7 +100,7 @@
       <div class="col"><label>طرق التخفيف</label><textarea id="doseRelief" rows="2" placeholder="خطط/تعليمات التخفيف"></textarea></div>
     </div>
     <div class="toolbar">
-      <button class="btn btn-primary" onclick="calcDose()">احسب</button>
+      <button class="btn btn-primary" id="btnDoseCalc">احسب</button>
       <div id="doseResult" class="row"></div>
     </div>
   </div>
@@ -114,7 +117,7 @@
       <div class="col"><label>طرق التخفيف</label><textarea id="fluidRelief" rows="2"></textarea></div>
     </div>
     <div class="toolbar">
-      <button class="btn btn-primary" onclick="calcFluids()">احسب</button>
+      <button class="btn btn-primary" id="btnFluidCalc">احسب</button>
       <div id="fluidResult" class="row"></div>
     </div>
   </div>
@@ -142,7 +145,7 @@
       <div class="col"><label>طرق التخفيف</label><textarea id="asaRelief" rows="2"></textarea></div>
     </div>
     <div class="toolbar">
-      <button class="btn btn-primary" onclick="calcASA()">تقييم</button>
+      <button class="btn btn-primary" id="btnASACalc">تقييم</button>
       <div id="asaResult" class="row"></div>
     </div>
   </div>
@@ -175,6 +178,9 @@
     <div id="usersList" class="grid"></div>
   </div>
 </div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
 
 <script type="module">
   /*************** Firebase (Modules) ***************/
@@ -211,8 +217,11 @@
   const btnAllHistory= document.getElementById("btnAllHistory");
   const btnMyHistory = document.getElementById("btnMyHistory");
   const historySearch= document.getElementById("historySearch");
+  const toastEl      = document.getElementById("toast");
+  const authError    = document.getElementById("authError");
   let currentUser=null, currentRole="user", showingAll=false, allHistoryCache=[], myHistoryCache=[];
 
+  function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove("hidden"); setTimeout(()=>toastEl.classList.add("hidden"),3000); }
   setTimeout(()=>splash.classList.add("hidden"),1000);
 
   // Tabs
@@ -230,17 +239,37 @@
   };
 
   /*************** Auth ***************/
-  document.getElementById("loginBtn").onclick=()=>signInWithEmailAndPassword(auth,emailInput.value,passInput.value).catch(e=>alert(e.message));
-  document.getElementById("googleBtn").onclick=()=>signInWithPopup(auth,new GoogleAuthProvider());
+  document.getElementById("loginBtn").onclick=()=>{
+    const email=emailInput.value.trim();
+    const pass=passInput.value.trim();
+    authError.textContent="";
+    if(!email||!pass){authError.textContent="الرجاء إدخال البريد وكلمة المرور.";return;}
+    signInWithEmailAndPassword(auth,email,pass)
+      .then(()=>toast("تم تسجيل الدخول"))
+      .catch(e=>{
+        console.error(e);
+        authError.textContent = `خطأ: ${e.code.replace("auth/","")} — ${e.message}`;
+      });
+  };
+  document.getElementById("googleBtn").onclick=()=>{
+    authError.textContent="";
+    signInWithPopup(auth,new GoogleAuthProvider())
+      .then(()=>toast("تم تسجيل الدخول بواسطة Google"))
+      .catch(e=>{
+        console.error(e);
+        authError.textContent = `Google خطأ: ${e.code?.replace("auth/","")||""} — ${e.message}`;
+      });
+  };
   document.getElementById("logoutBtn").onclick=()=>signOut(auth);
 
   onAuthStateChanged(auth, async (u)=>{
     if(u){
       currentUser=u;
+      // تعيين الدور: المالك حسب البريد
       const role = (u.email==="bama47686@gmail.com") ? "owner" : "user";
       await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
       const us = (await getDoc(doc(db,"users",u.uid))).data();
-      if(us?.banned){ alert("تم حظرك من الوصول للتطبيق."); await signOut(auth); return; }
+      if(us?.banned){ authError.textContent="تم حظرك من الوصول للتطبيق."; await signOut(auth); return; }
       currentRole=role;
       userInfo.textContent=`${u.email} — Role: ${role}`;
       tabAdmin.classList.toggle("hidden", role!=="owner");
@@ -269,6 +298,7 @@
     // Refresh caches
     await loadMyHistory();
     if(currentRole==="owner" && showingAll) await loadAllHistory();
+    toast("تم الحفظ في السجل ✅");
   }
 
   function fmtDate(ts){
@@ -321,7 +351,7 @@
   }
 
   async function loadAllHistory(){
-    const qy = query(collection(db,"history"), orderBy("createdAt","desc"), limit(400));
+    const qy = query(collection(db,"history"), orderBy("createdAt","desc"), limit(500));
     const snap = await getDocs(qy);
     allHistoryCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
     if(showingAll) renderHistory(allHistoryCache);
@@ -360,13 +390,13 @@
 
   /*************** Calculators ***************/
   // جرعات
-  window.calcDose = async ()=>{
+  document.getElementById("btnDoseCalc").onclick = async ()=>{
     const w = +document.getElementById("doseWeight").value;
     const name = document.getElementById("doseName").value.trim();
     const notes= document.getElementById("doseNotes").value.trim();
     const sym  = document.getElementById("doseSymptoms").value.trim();
     const rel  = document.getElementById("doseRelief").value.trim();
-    if(!w || !name){ alert("الرجاء إدخال اسم المريض والوزن."); return; }
+    if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
     // أمثلة مبسطة، عدل حسب بروتوكولك
     const result = {
@@ -388,12 +418,12 @@
   };
 
   // سوائل
-  window.calcFluids = async ()=>{
+  document.getElementById("btnFluidCalc").onclick = async ()=>{
     const w = +document.getElementById("fluidWeight").value;
     const name = document.getElementById("fluidName").value.trim();
     const sym  = document.getElementById("fluidSymptoms").value.trim();
     const rel  = document.getElementById("fluidRelief").value.trim();
-    if(!w || !name){ alert("الرجاء إدخال اسم المريض والوزن."); return; }
+    if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
     // تقدير بسيط: 30 ml/kg/day
     const fluids = `${(w*30).toFixed(0)} ml/day`;
@@ -410,13 +440,13 @@
   };
 
   // ASA
-  window.calcASA = async ()=>{
+  document.getElementById("btnASACalc").onclick = async ()=>{
     const age = +document.getElementById("asaAge").value;
     const name= document.getElementById("asaName").value.trim();
     const sel = [...document.getElementById("asaCom").selectedOptions].map(o=>o.value);
     const sym = document.getElementById("asaSymptoms").value.trim();
     const rel = document.getElementById("asaRelief").value.trim();
-    if(!name || !age){ alert("الرجاء إدخال اسم المريض والعمر."); return; }
+    if(!name || !age){ toast("الرجاء إدخال اسم المريض والعمر."); return; }
 
     let score="ASA I";
     if(sel.includes("فشل قلبي")||sel.includes("قصور كبدي/كلوي")) score="ASA IV";
