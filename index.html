@@ -3,862 +3,469 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>حساب الجرعات المطوّر — أكادمية ANS الطبية</title>
+<title>أكاديمية ANS — نظام حسابات التخدير</title>
+
 <style>
   :root{
-    --bg1:#09142a; --bg2:#0b3550; --card:#ffffff; --accent:#0a5275;
-    --text:#e6f3ff; --muted:#9fcbe0; --glass: rgba(255,255,255,0.04);
-    --good:#10b981; --warn:#f59e0b; --bad:#ef4444;
-  }
-  [data-theme="light"]{
-    --bg1:#f0f6fb; --bg2:#e8f2f8; --card:#fff; --accent:#0a5275;
-    --text:#062433; --muted:#475b64; --glass: rgba(10,82,117,0.06);
-    color-scheme: light;
+    --bg:#0a1124;--panel:#0f1830;--line:#1c2a4f;--text:#e8f0ff;--muted:#99a9d3;
+    --pri:#3aa6ff;--pri-ink:#00122b;--danger:#ff5470;--danger-ink:#2b0010;--ghost:#162448;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Tahoma,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--text);min-height:100vh;overflow-x:hidden}
-  .top-banner{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10010;background:linear-gradient(90deg,#072836,#0a5275);padding:14px 22px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5);text-align:center;font-weight:700}
-  .top-banner small{display:block;font-weight:400;opacity:0.9;margin-top:6px}
-  #splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;background:linear-gradient(135deg,#071024 0%, #0b2b3a 70%);overflow:hidden}
-  .bars-wrap{width:92%;max-width:1000px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
-  .bar{background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));padding:18px;border-radius:12px;color:#eaf6ff;display:flex;flex-direction:column;gap:4px;align-items:flex-start;transform-origin:center;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
-  .bar b{font-size:20px}
-  .bar small{opacity:0.85;color:#d8f0ff}
-  .bar .user{font-size:13px;color:#bfe6ff}
-  .bar.top{animation:barOutTop 5s cubic-bezier(.2,.9,.3,1) forwards}
-  .bar.mid{animation:barOutMid 5s cubic-bezier(.2,.9,.3,1) forwards}
-  .bar.dev{animation:barOutDev 6s cubic-bezier(.2,.9,.3,1) forwards}
-  @keyframes barOutTop {0%{transform:translateX(0);opacity:1}60%{transform:translateX(0);opacity:1}100%{transform:translateX(-140%);opacity:0}}
-  @keyframes barOutMid {0%{transform:translateX(0);opacity:1}70%{transform:translateX(0);opacity:1}100%{transform:translateX(140%);opacity:0}}
-  @keyframes barOutDev {0%{transform:translateY(0);opacity:1}70%{transform:translateY(0);opacity:1}100%{transform:translateY(-120%);opacity:0}}
-  .splash-note{color:#bfe6ff;opacity:0.95}
-  .decoration{position:fixed;inset:0;pointer-events:none;z-index:5}
-  .bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.14), rgba(255,255,255,0.02));filter:blur(6px);opacity:.6;animation:floatY linear infinite}
-  @keyframes floatY{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-60px) translateX(20px)}100%{transform:translateY(0) translateX(0)}}
-  .glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.06), rgba(255,255,255,0));filter:blur(40px);opacity:0.8;mix-blend-mode:screen}
-  #app{display:none;position:relative;z-index:10;padding:28px;max-width:1200px;margin:36px auto}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:18px;box-shadow:0 18px 50px rgba(2,6,23,0.6);color:var(--text)}
-  h1{margin:0 0 14px;text-align:center;color:var(--accent)}
-  .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
-  .btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#0ea5a5,#0a5275);color:#fff;cursor:pointer;min-width:140px}
-  .btn.secondary{background:linear-gradient(90deg,#6b7280,#0b5f7a)}
-  .btn.ghost{background:transparent;border:1px dashed rgba(255,255,255,0.2)}
-  .panel{display:none;margin-top:16px}
-  label{display:block;text-align:right;margin:6px 0;color:var(--text)}
-  input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--text)}
-  .muted{color:var(--muted);font-size:13px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
-  .sideEffect{background:rgba(255,70,90,0.06);border-left:4px solid rgba(255,70,90,0.9);padding:10px;margin:8px 0;border-radius:8px;color:#ffecec}
-  .chatBox{height:160px;overflow:auto;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
-  footer{margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
-  .controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .small-muted{font-size:12px;color:var(--muted)}
-  .result-box{background:rgba(0,0,0,0.18);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
-  .pill{display:inline-block;padding:6px 10px;background:rgba(255,255,255,0.05);border-radius:999px;margin:6px 6px 0 0;color:#dff6ff;font-weight:600}
-  .pill.good{background:rgba(16,185,129,0.15)}
-  .pill.warn{background:rgba(245,158,11,0.18)}
-  .pill.bad{background:rgba(239,68,68,0.18)}
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:10020}
-  .modal .box{background:var(--card);color:var(--text);padding:18px;border-radius:12px;max-width:900px;width:92%}
-  @media (max-width:720px){#app{padding:14px}.grid{grid-template-columns:1fr}}
-  /* ===== Login gate ===== */
-  #gate{position:fixed;inset:0;background:linear-gradient(135deg,#03101a,#0b2b3a);display:flex;align-items:center;justify-content:center;z-index:10050}
-  .gate-card{background:rgba(255,255,255,0.06);backdrop-filter:blur(8px);padding:18px;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,0.5);width:95%;max-width:520px}
-  .table{width:100%;border-collapse:collapse}
-  .table th,.table td{border-bottom:1px dashed rgba(255,255,255,0.08);padding:8px;text-align:right;font-size:14px}
-  .table th{opacity:0.8}
+  body{margin:0;font-family:"Tahoma",system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
+  .hidden{display:none!important}
+  .btn{cursor:pointer;padding:10px 14px;border-radius:12px;border:0;font-weight:700;transition:transform .05s}
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:var(--pri);color:var(--pri-ink)}
+  .btn-danger{background:var(--danger);color:var(--danger-ink)}
+  .btn-ghost{background:#132044;color:#dbe7ff;border:1px solid var(--line)}
+  .btn-chip{background:var(--ghost);color:#cfe1ff;padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+  input,select,textarea{background:#0b1633;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px;width:100%;margin:6px 0}
+  label{font-size:13px;color:var(--muted)}
+  .title{font-size:20px;margin:0 0 8px}
+  .tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+  .tab{padding:10px 14px;border-radius:12px;background:#0d1a36;color:#cde1ff;cursor:pointer;border:1px solid var(--line)}
+  .tab.active{background:#173069}
+  #chatBox{height:260px;overflow-y:auto;background:#0b1634;padding:10px;border-radius:12px;border:1px solid var(--line)}
+  .msg{margin:6px 0;padding:8px;background:#152c58;border-radius:10px}
+  .chip{background:#162448;padding:6px 10px;border-radius:999px;font-size:12px;margin:2px;display:inline-block;border:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .muted{color:var(--muted);font-size:12px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .col{flex:1 1 220px}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .divider{height:1px;background:var(--line);margin:8px 0}
+  .k{color:#9cc0ff}
 </style>
 </head>
 <body>
 
-<!-- TOP BANNER -->
-<div class="top-banner" id="topBanner">
-  <div style="font-size:18px">أكادمية ANS الطبية ☆</div>
-  <small>حساب الجرعات المطوّر</small>
-</div>
-
-<!-- SPLASH -->
-<div id="splash">
-  <div class="bars-wrap" style="width:86%">
-    <div class="bar top"><b>المنظم: مصطفى احمد عبد شكير</b><small>منظم</small><div class="user">@871c</div></div>
-    <div class="bar mid"><b>المنظم: محمد طاهر يحيى</b><small>منظم</small><div class="user">@ans_mz1092</div></div>
-    <div class="bar dev"><b>المطور: مصطفى مكي عبدالرضا</b><small>منظم و مطور الموقع (المالك)</small><div class="user">@ku56t</div></div>
+<!-- Splash -->
+<div id="splash" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#07112a;z-index:9999">
+  <div class="card" style="max-width:360px;text-align:center">
+    <div style="font-size:28px;margin-bottom:6px">ANS</div>
+    <div class="muted">جاري التحميل...</div>
   </div>
-  <div class="splash-note">جارِ التحميل — سيتم فتح الواجهة تلقائياً بعد انتهاء الحركة</div>
 </div>
 
-<!-- decoration -->
-<div class="decoration" aria-hidden="true">
-  <div class="bubble" style="left:6%;top:12%;width:160px;height:160px;animation-duration:10s"></div>
-  <div class="bubble" style="left:78%;top:22%;width:120px;height:120px;animation-duration:12s"></div>
-  <div class="bubble" style="left:22%;top:72%;width:90px;height:90px;animation-duration:9s"></div>
-  <div class="bubble" style="left:68%;top:80%;width:140px;height:140px;animation-duration:11s"></div>
-  <div class="glow" style="left:2%;top:72%;opacity:0.4"></div>
-  <div class="glow" style="right:2%;top:60%;opacity:0.25"></div>
+<!-- Login -->
+<div id="loginScreen" class="hidden" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px">
+  <div class="card" style="max-width:380px;width:100%">
+    <h3 class="title">تسجيل الدخول</h3>
+    <label>البريد</label><input id="emailInput" type="email" placeholder="you@example.com" />
+    <label>كلمة المرور</label><input id="passInput" type="password" placeholder="••••••••" />
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;margin-top:8px">دخول</button>
+    <div class="divider"></div>
+    <button class="btn btn-ghost" id="googleBtn" style="width:100%">دخول بواسطة Google</button>
+    <div class="muted" style="margin-top:8px">المالك: <b class="k">bama47686@gmail.com</b> (role=owner)</div>
+  </div>
 </div>
 
-<!-- ===== LOGIN GATE (mandatory) ===== -->
-<div id="gate">
-  <div class="gate-card">
-    <h2 style="margin:0 0 6px">🔐 تسجيل الدخول — حساب الجرعات المطوّر</h2>
-    <div class="muted">الدخول إجباري. البيانات تُحفظ محلياً (LocalStorage) للتجربة فقط.</div>
-    <div class="grid" style="margin-top:10px">
-      <div>
-        <label>الإيميل
-          <input id="authEmail" type="email" placeholder="example@mail.com">
-        </label>
-        <label>كلمة المرور
-          <input id="authPass" type="password" placeholder="••••••••">
-        </label>
-        <div class="controls-row">
-          <button class="btn" id="btnLogin">تسجيل الدخول</button>
-          <button class="btn secondary" id="btnRegister">إنشاء حساب</button>
-          <button class="btn ghost" id="btnGoogle">ربط عن طريق Google (وهمي)</button>
-        </div>
-      </div>
-      <div>
-        <div class="result-box">
-          <b>ملاحظات:</b>
-          <ul style="margin:8px 0 0 0;padding-right:18px;line-height:1.6;color:var(--muted)">
-            <li>المستخدمون يُخزنون محليًا مع: ID، اسم، إيميل، Role، حالة الحظر.</li>
-            <li>إن كنت مالكًا (owner) سترى لوحة إدارة كاملة بعد الدخول.</li>
-            <li>الحظر يتم عبر <b>ID</b> ولا تظهر قائمة الحظر إلا للمالكين.</li>
-          </ul>
-        </div>
-      </div>
+<!-- App -->
+<div id="app" class="hidden" style="padding:16px;max-width:1200px;margin:auto">
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <div>
+      <div style="font-size:18px">نظام حسابات التخدير — ANS</div>
+      <div id="userInfo" class="muted"></div>
+    </div>
+    <div class="toolbar">
+      <button id="btnGoHistory" class="btn btn-chip">📂 السجل</button>
+      <button id="logoutBtn" class="btn btn-danger">تسجيل الخروج</button>
     </div>
   </div>
-</div>
 
-<!-- APP -->
-<div id="app">
-  <div class="card">
-    <h1>🚑 حساب الجرعات المطوّر — نظام التخدير الطبي</h1>
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-target="panelDose">⚖️ الجرعات</div>
+    <div class="tab" data-target="panelFluids">💧 السوائل</div>
+    <div class="tab" data-target="panelASA">📊 ASA</div>
+    <div class="tab" data-target="panelChat">💬 الشات</div>
+    <div class="tab hidden" id="tabAdmin" data-target="panelAdmin">⚙️ المالك</div>
+    <div class="tab" data-target="panelHistory">🗂️ السجل</div>
+  </div>
 
+  <!-- Dose -->
+  <div id="panelDose" class="card">
+    <h3 class="title">⚖️ حساب الجرعات</h3>
     <div class="row">
-      <button class="btn" id="showDose">حساب الجرعات</button>
-      <button class="btn" id="showFluids">حساب السوائل والدم</button>
-      <button class="btn" id="showAirway">الارنغوسكوب & ETT</button>
-      <button class="btn" id="showAdmin">لوحة التحكم</button>
-      <button class="btn secondary" id="aboutBtn">حول الموقع</button>
-      <button class="btn secondary" id="themeToggle">وضع: داكن</button>
-      <button class="btn secondary" id="scanBtn">مسح كيس المريض (كاميرا)</button>
+      <div class="col"><label>اسم المريض</label><input id="doseName" /></div>
+      <div class="col"><label>الوزن (كغ)</label><input id="doseWeight" type="number" /></div>
+      <div class="col"><label>ملاحظات</label><input id="doseNotes" placeholder="حساسية، أدوية ثابتة..." /></div>
     </div>
+    <div class="row">
+      <div class="col"><label>الأعراض</label><textarea id="doseSymptoms" rows="2" placeholder="أعراض المريض الحالية"></textarea></div>
+      <div class="col"><label>طرق التخفيف</label><textarea id="doseRelief" rows="2" placeholder="خطط/تعليمات التخفيف"></textarea></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="calcDose()">احسب</button>
+      <div id="doseResult" class="row"></div>
+    </div>
+  </div>
 
-    <!-- ========== Dose panel ========== -->
-    <div id="panelDose" class="panel">
-      <h2 style="margin-top:0">💉 حساب جرعات التخدير</h2>
-      <div class="grid">
-        <div>
-          <label>وزن المريض (كغ)
-            <input id="weightDose" type="number" placeholder="مثلاً 70" min="0" step="0.1">
-          </label>
+  <!-- Fluids -->
+  <div id="panelFluids" class="card hidden">
+    <h3 class="title">💧 حساب السوائل</h3>
+    <div class="row">
+      <div class="col"><label>اسم المريض</label><input id="fluidName" /></div>
+      <div class="col"><label>الوزن (كغ)</label><input id="fluidWeight" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>الأعراض</label><textarea id="fluidSymptoms" rows="2"></textarea></div>
+      <div class="col"><label>طرق التخفيف</label><textarea id="fluidRelief" rows="2"></textarea></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="calcFluids()">احسب</button>
+      <div id="fluidResult" class="row"></div>
+    </div>
+  </div>
 
-          <label>عمر المريض
-            <div style="display:flex;gap:8px">
-              <input id="ageDose" type="number" placeholder="مثلاً 40" min="0" step="0.1" style="flex:1">
-              <select id="ageUnitDose" style="width:120px">
-                <option value="years">سنوات</option>
-                <option value="months">أشهر</option>
-                <option value="days">أيام</option>
-              </select>
-            </div>
-          </label>
-
-          <label>تصنيف ASA
-            <select id="asaSelect">
-              <option value="I">ASA I (سليم)</option>
-              <option value="II">ASA II (مرض خفيف)</option>
-              <option value="III">ASA III (مرض متوسط)</option>
-              <option value="IV">ASA IV (خطر ثابت)</option>
-              <option value="V">ASA V (حرج)</option>
-            </select>
-          </label>
-
-          <label>حالة المريض
-            <select id="patientHealth">
-              <option value="healthy">صحي</option>
-              <option value="unhealthy">مريض (أمراض متعددة)</option>
-            </select>
-          </label>
-
-          <div id="diseaseDiv" style="display:none;margin-top:8px">
-            <label>اختر الأمراض (يمكن اختيار أكثر من مرض)
-              <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-                <label><input type="checkbox" class="diseaseChk" value="diabetes"> سكري</label>
-                <label><input type="checkbox" class="diseaseChk" value="heart"> أمراض قلبية (CHF/IHD)</label>
-                <label><input type="checkbox" class="diseaseChk" value="lung"> أمراض رئوية (COPD/Asthma)</label>
-                <label><input type="checkbox" class="diseaseChk" value="liver"> أمراض كبدية</label>
-                <label><input type="checkbox" class="diseaseChk" value="kidney"> أمراض كلوية</label>
-                <label><input type="checkbox" class="diseaseChk" value="allergy"> تحسس / حساسية دوائية</label>
-                <label><input type="checkbox" class="diseaseChk" value="obesity"> سمنة مفرطة (BMI ≥40)</label>
-              </div>
-            </label>
-          </div>
-
-          <label>اختر الدواء
-            <select id="drugDose"></select>
-          </label>
-
-          <div class="controls-row" style="margin-top:10px">
-            <button class="btn" id="calcDose">احسب الجرعة</button>
-            <button class="btn secondary" id="resetDoseChat">إعادة تعيين الشات</button>
-            <div class="small-muted">النتيجة تُظهر جرعة/كغ + الإجمالي مع إنذارات الحد الأقصى.</div>
-          </div>
-        </div>
-
-        <div>
-          <div id="doseResult" class="result-box muted"><b>النتيجة ستظهر هنا</b></div>
-          <div id="doseWarnings" style="margin-top:8px"></div>
-          <div id="doseEffects" style="margin-top:12px"></div>
-          <div id="reductionMethods" style="margin-top:12px"></div>
-        </div>
-      </div>
-
-      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.05);margin:16px 0">
-
-      <h3 style="margin-bottom:8px">💬 شات القسم (محفوظ محلياً)</h3>
-      <div class="chatBox" id="doseChat"></div>
-      <div class="controls-row" style="margin-top:8px">
-        <textarea id="doseChatInput" placeholder="اسأل عن الدواء أو الآثار..." style="flex:1"></textarea>
-        <button class="btn" id="doseChatSend">أرسل</button>
+  <!-- ASA -->
+  <div id="panelASA" class="card hidden">
+    <h3 class="title">📊 تقييم ASA</h3>
+    <div class="row">
+      <div class="col"><label>اسم المريض</label><input id="asaName" /></div>
+      <div class="col"><label>العمر</label><input id="asaAge" type="number" /></div>
+      <div class="col">
+        <label>مرافق</label>
+        <select id="asaCom" multiple style="min-height:104px">
+          <option>لا يوجد</option>
+          <option>سكري غير مضبوط</option>
+          <option>ضغط شديد</option>
+          <option>فشل قلبي</option>
+          <option>قصور كبدي/كلوي</option>
+          <option>حالة إسعافية</option>
+        </select>
       </div>
     </div>
-
-    <!-- ========== Fluids panel ========== -->
-    <div id="panelFluids" class="panel">
-      <h2>💧 حساب السوائل والدم</h2>
-      <div class="grid">
-        <div>
-          <label>وزن المريض (كغ)
-            <input id="weightFluid" type="number" placeholder="مثلاً 70" min="0" step="0.1">
-          </label>
-
-          <label>عمر المريض
-            <div style="display:flex;gap:8px">
-              <input id="ageFluid" type="number" min="0" step="0.1" style="flex:1">
-              <select id="ageUnitFluid" style="width:120px">
-                <option value="years">سنوات</option>
-                <option value="months">أشهر</option>
-                <option value="days">أيام</option>
-              </select>
-            </div>
-          </label>
-
-          <label>نوع الفلود
-            <select id="fluidType">
-              <option value="NS">Normal Saline (0.9% NaCl)</option>
-              <option value="LR">Lactated Ringer</option>
-              <option value="D5W">D5W (5% Dextrose)</option>
-              <option value="blood">دم كامل/حزم الدم</option>
-            </select>
-          </label>
-
-          <div class="controls-row" style="margin-top:8px">
-            <button class="btn" id="calcFluids">احسب السوائل/الدم</button>
-            <button class="btn secondary" id="resetFluidChat">إعادة تعيين الشات</button>
-            <div class="small-muted">التقدير يتغير بحسب نوع الفلود.</div>
-          </div>
-        </div>
-
-        <div>
-          <div id="fluidResult" class="result-box muted">النتيجة ستظهر هنا</div>
-        </div>
-      </div>
-
-      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.05);margin:16px 0">
-      <h3>💬 شات القسم (محفوظ محلياً)</h3>
-      <div class="chatBox" id="fluidChat"></div>
-      <div class="controls-row" style="margin-top:8px">
-        <textarea id="fluidChatInput" placeholder="اسأل عن السوائل/نقل الدم..." style="flex:1"></textarea>
-        <button class="btn" id="fluidChatSend">أرسل</button>
-      </div>
+    <div class="row">
+      <div class="col"><label>الأعراض</label><textarea id="asaSymptoms" rows="2"></textarea></div>
+      <div class="col"><label>طرق التخفيف</label><textarea id="asaRelief" rows="2"></textarea></div>
     </div>
-
-    <!-- ========== Airway panel ========== -->
-    <div id="panelAirway" class="panel">
-      <h2>🫁 اللارنغوسكوب و ETT</h2>
-      <div class="grid">
-        <div>
-          <label>عمر المريض
-            <div style="display:flex;gap:8px">
-              <input id="ageAirway" type="number" placeholder="مثلاً 3" min="0" step="0.1" style="flex:1">
-              <select id="ageUnitAirway" style="width:120px">
-                <option value="years">سنوات</option>
-                <option value="months">أشهر</option>
-                <option value="days">أيام</option>
-              </select>
-            </div>
-          </label>
-
-          <label>وزن المريض (كغ)
-            <input id="weightAirway" type="number" placeholder="اختياري" min="0" step="0.1">
-          </label>
-
-          <div class="controls-row" style="margin-top:8px">
-            <button class="btn" id="calcAirway">اختر الحجم المناسب</button>
-            <button class="btn secondary" id="resetAirwayChat">إعادة تعيين الشات</button>
-            <div class="small-muted">حساب تقريبي.</div>
-          </div>
-        </div>
-
-        <div>
-          <div id="airwayResult" class="result-box muted">النتيجة ستظهر هنا</div>
-        </div>
-      </div>
-
-      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.05);margin:16px 0">
-      <h3>💬 شات القسم (محفوظ محلياً)</h3>
-      <div class="chatBox" id="airwayChat"></div>
-      <div class="controls-row" style="margin-top:8px">
-        <textarea id="airwayChatInput" placeholder="اسأل عن استخدام الشفرة أو حجم ETT..." style="flex:1"></textarea>
-        <button class="btn" id="airwayChatSend">أرسل</button>
-      </div>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="calcASA()">تقييم</button>
+      <div id="asaResult" class="row"></div>
     </div>
+  </div>
 
-    <!-- ========== Admin panel ========== -->
-    <div id="panelAdmin" class="panel">
-      <h2>⚙️ لوحة تحكم (Admin/Owner)</h2>
-
-      <div class="grid">
-        <div>
-          <div class="result-box" id="whoamiBox">المستخدم الحالي: —</div>
-          <div class="small-muted" style="margin-top:6px">تظهر أدوات المالك فقط إذا كان دورك <b>owner</b>.</div>
-
-          <div id="ownerTools" style="display:none;margin-top:10px">
-            <h3>👥 إدارة المستخدمين</h3>
-            <div class="controls-row">
-              <input id="newUserEmail" placeholder="إيميل">
-              <input id="newUserName" placeholder="اسم مستخدم">
-              <input id="newUserPass" placeholder="كلمة مرور" type="password">
-              <button class="btn" id="addUserBtn">أضف</button>
-            </div>
-
-            <div class="controls-row" style="margin-top:8px">
-              <button class="btn secondary" id="listUsersBtn">عرض المستخدمين</button>
-            </div>
-            <div id="usersList" style="margin-top:8px"></div>
-
-            <hr style="margin:14px 0">
-            <h3>🧾 سجل الحسابات (Audit Log)</h3>
-            <div class="controls-row">
-              <input id="logFilter" placeholder="بحث في السجل (نوع/دواء/إيميل/نتيجة)">
-              <button class="btn" id="refreshLog">تحديث</button>
-              <button class="btn ghost" id="exportLog">تصدير JSON</button>
-            </div>
-            <div id="logBox" class="result-box" style="margin-top:8px;max-height:280px;overflow:auto">لا توجد قيود بعد.</div>
-            <div class="small-muted">يسجّل: وقت العملية، المستخدم، النوع (Dose/Fluids/Airway)، المدخلات والنتيجة.</div>
-          </div>
-        </div>
-
-        <div>
-          <div class="result-box">
-            <h3 style="margin:0 0 6px">خروج/تبديل حساب</h3>
-            <button class="btn" id="logoutBtn">تسجيل الخروج</button>
-          </div>
-          <div class="small-muted" style="margin-top:8px">تذكير: هذا نموذج محلي — للنشر الحقيقي تحتاج Backend آمن وقاعدة بيانات.</div>
-        </div>
-      </div>
+  <!-- Chat -->
+  <div id="panelChat" class="card hidden">
+    <h3 class="title">💬 الشات</h3>
+    <div id="chatBox"></div>
+    <div class="row">
+      <div class="col"><input id="chatInput" placeholder="رسالتك..." /></div>
+      <div><button id="chatSend" class="btn btn-primary">إرسال</button></div>
     </div>
+  </div>
 
-    <footer>© حساب الجرعات المطوّر — راجع دوماً الإرشادات السريرية قبل إعطاء أي جرعة</footer>
+  <!-- History -->
+  <div id="panelHistory" class="card hidden">
+    <h3 class="title">🗂️ السجل</h3>
+    <div class="toolbar" id="historyToolbar">
+      <button class="btn btn-chip" id="btnMyHistory">سجلي</button>
+      <button class="btn btn-chip hidden" id="btnAllHistory">كل السجلات (مالك)</button>
+      <input id="historySearch" placeholder="بحث بالاسم/الإيميل/الدواء..." style="min-width:220px" />
+    </div>
+    <div id="historyList" class="grid"></div>
+  </div>
+
+  <!-- Admin -->
+  <div id="panelAdmin" class="card hidden">
+    <h3 class="title">⚙️ لوحة المالك</h3>
+    <div class="muted" style="margin-bottom:6px">عرض جميع المستخدمين مع إمكانية الحظر/إلغاء الحظر (حسب UID)</div>
+    <div id="usersList" class="grid"></div>
   </div>
 </div>
 
-<!-- ABOUT modal -->
-<div class="modal" id="aboutModal">
-  <div class="box">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <h3 style="margin:0">حول الموقع</h3>
-        <small class="muted">معلومات وتعريف المشروع</small>
-      </div>
-      <div><button class="btn" id="closeAbout">إغلاق</button></div>
-    </div>
+<script type="module">
+  /*************** Firebase (Modules) ***************/
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { 
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
+    GoogleAuthProvider, signInWithPopup, signOut 
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { 
+    getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, 
+    serverTimestamp, query, orderBy, where, onSnapshot, limit 
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    <div style="margin-top:12px;color:var(--muted);line-height:1.6">
-      <p><strong>حساب الجرعات المطوّر</strong> هو موقع لحساب جرعات التخدير والسوائل والهوائيات. صُمم للتعلّم والمساعدة السريعة — لا يُستغنى به عن القرار السريري.</p>
-      <p>الأشخاص المذكورون في شاشة البداية (الأشرطة):</p>
-      <ul>
-        <li>المطور والمالك: <b>مصطفى مكي عبدالرضا</b> — @ku56t</li>
-        <li>منظم: <b>مصطفى احمد عبد شكير</b> — @871c</li>
-        <li>منظم: <b>محمد طاهر يحيى</b> — @ans_mz1092</li>
-      </ul>
-      <p>ميزات: دخول إجباري، إدارة مستخدمين عبر ID، حظر عبر ID للمالكين فقط، سجل كامل للعمليات، شات محفوظ لكل قسم، وتحذيرات أمراض تؤثر على الجرعة.</p>
-      <p style="margin-top:8px;color:#ffdede"><strong>تنبيه طبي:</strong> أداة مساعدة/تعليمية فقط.</p>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ========= Utilities & Initialization ========= */
-document.addEventListener('DOMContentLoaded', ()=>{
-
-  /* ======= Splash timing ======= */
-  setTimeout(()=> {
-    const splash = document.getElementById('splash');
-    splash.style.transition = 'opacity .6s ease, transform .6s ease';
-    splash.style.opacity = '0';
-    splash.style.transform = 'translateY(-20px)';
-    setTimeout(()=>{ splash.style.display='none'; }, 700);
-  }, 6000);
-
-  /* ======= Theming ======= */
-  const themeBtn = document.getElementById('themeToggle');
-  let dark = true;
-  themeBtn.addEventListener('click', ()=>{
-    dark = !dark;
-    if(!dark) { document.documentElement.setAttribute('data-theme','light'); themeBtn.textContent='وضع: فاتح'; }
-    else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent='وضع: داكن'; }
-  });
-
-  /* ======= Panels ======= */
-  const panels = { showDose:'panelDose', showFluids:'panelFluids', showAirway:'panelAirway', showAdmin:'panelAdmin' };
-  Object.keys(panels).forEach(btnId=>{
-    document.getElementById(btnId).addEventListener('click', ()=>{
-      Object.values(panels).forEach(pid => document.getElementById(pid).style.display='none');
-      document.getElementById(panels[btnId]).style.display='block';
-      window.scrollTo({top:0, behavior:'smooth'});
-    });
-  });
-
-  /* ======= LocalStorage helpers ======= */
-  const LS = {
-    usersKey: 'ans_users_v2',
-    chatKey:  (section)=>`ans_chat_${section}`,
-    auditKey: 'ans_audit_log_v1',
-    whoKey:   'ans_current_user',
-    load(k){ try{return JSON.parse(localStorage.getItem(k)||'null')}catch(_){return null} },
-    save(k,v){ localStorage.setItem(k, JSON.stringify(v)) },
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZUYrFNedms77FWlksMJV3yCETywoJAZw",
+    authDomain: "anesthesia-dose-262e3.firebaseapp.com",
+    projectId: "anesthesia-dose-262e3",
+    storageBucket: "anesthesia-dose-262e3.firebasestorage.app",
+    messagingSenderId: "602244448093",
+    appId: "1:602244448093:web:0a8d9905849126086ff2b4",
+    measurementId: "G-SCHMQFCK3J"
   };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
 
-  /* ======= Users & Auth ======= */
-  function genId(){ return 'u-'+Math.random().toString(36).slice(2,10); }
-  function nowISO(){ return new Date().toISOString(); }
-  function initOwners(){
-    let users = LS.load(LS.usersKey) || [];
-    if(!users.find(u=>u.role==='owner')){
-      users.push({ id: genId(), username:'owner', email:'owner@example.com', password:'mustafa@2006#2', role:'owner', banned:false, provider:'local' });
-      LS.save(LS.usersKey, users);
-    }
-  }
-  initOwners();
+  /*************** UI helpers ***************/
+  const splash       = document.getElementById("splash");
+  const loginScreen  = document.getElementById("loginScreen");
+  const appEl        = document.getElementById("app");
+  const userInfo     = document.getElementById("userInfo");
+  const tabAdmin     = document.getElementById("tabAdmin");
+  const historyList  = document.getElementById("historyList");
+  const btnAllHistory= document.getElementById("btnAllHistory");
+  const btnMyHistory = document.getElementById("btnMyHistory");
+  const historySearch= document.getElementById("historySearch");
+  let currentUser=null, currentRole="user", showingAll=false, allHistoryCache=[], myHistoryCache=[];
 
-  function getUsers(){ return LS.load(LS.usersKey)||[]; }
-  function setUsers(u){ LS.save(LS.usersKey,u); }
-  function currentUser(){ return LS.load(LS.whoKey); }
-  function setCurrentUser(u){ LS.save(LS.whoKey,u); }
+  setTimeout(()=>splash.classList.add("hidden"),1000);
 
-  // Login Gate elements
-  const gate = document.getElementById('gate');
-  const app = document.getElementById('app');
-  const btnLogin = document.getElementById('btnLogin');
-  const btnRegister = document.getElementById('btnRegister');
-  const btnGoogle = document.getElementById('btnGoogle');
-
-  function openAppFor(user){
-    setCurrentUser({ id:user.id, email:user.email, username:user.username, role:user.role });
-    document.getElementById('whoamiBox').innerHTML = `المستخدم الحالي: <b>${user.username}</b> — <span class="muted">${user.email}</span> — ID: ${user.id} — Role: ${user.role}${user.banned?'<span class="pill bad">محظور</span>':''}`;
-    document.getElementById('ownerTools').style.display = (user.role==='owner') ? 'block' : 'none';
-    // default panel
-    document.getElementById('showDose').click();
-    // show app, hide gate
-    app.style.display='block';
-    gate.style.display='none';
-  }
-
-  // Auto-login if remembered
-  (()=>{ const u = currentUser(); if(u){ const full = (getUsers().find(x=>x.id===u.id)); if(full && !full.banned){ openAppFor(full); } } })();
-
-  btnRegister.addEventListener('click', ()=>{
-    const email = document.getElementById('authEmail').value.trim();
-    const pass = document.getElementById('authPass').value.trim();
-    if(!email || !pass){ alert('أدخل الإيميل وكلمة المرور'); return; }
-    let users = getUsers();
-    if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())){ alert('الإيميل مسجل مسبقاً'); return; }
-    const username = email.split('@')[0];
-    const user = { id: genId(), email, username, password:pass, role:'user', banned:false, provider:'local' };
-    users.push(user); setUsers(users);
-    alert('تم إنشاء الحساب. سَجّل الدخول الآن.');
-  });
-
-  btnLogin.addEventListener('click', ()=>{
-    const email = document.getElementById('authEmail').value.trim();
-    const pass = document.getElementById('authPass').value.trim();
-    const u = getUsers().find(x=>x.email.toLowerCase()===email.toLowerCase() && x.password===pass);
-    if(!u) return alert('بيانات دخول خاطئة');
-    if(u.banned) return alert('هذا الحساب محظور');
-    openAppFor(u);
-  });
-
-  // Fake Google link (creates/links an account)
-  btnGoogle.addEventListener('click', ()=>{
-    const rand = Math.random().toString(36).slice(2,8);
-    const email = `user_${rand}@gmail.com`;
-    let users = getUsers();
-    let u = users.find(x=>x.email===email);
-    if(!u){
-      u = { id: genId(), email, username:`g_${rand}`, password:null, role:'user', banned:false, provider:'google' };
-      users.push(u); setUsers(users);
-    }
-    openAppFor(u);
-  });
-
-  // logout
-  document.getElementById('logoutBtn').addEventListener('click', ()=>{
-    localStorage.removeItem(LS.whoKey);
-    location.reload();
-  });
-
-  /* ======= Admin — Manage users (owner only) ======= */
-  document.getElementById('addUserBtn').addEventListener('click', ()=>{
-    const me = currentUser(); if(!me || me.role!=='owner') return alert('للمالك فقط');
-    const email = document.getElementById('newUserEmail').value.trim();
-    const name = document.getElementById('newUserName').value.trim();
-    const pass = document.getElementById('newUserPass').value.trim();
-    if(!email || !name || !pass) return alert('أكمل الحقول');
-    let users = getUsers();
-    if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())) return alert('الإيميل موجود');
-    users.push({ id: genId(), email, username:name, password:pass, role:'user', banned:false, provider:'local' });
-    setUsers(users);
-    document.getElementById('newUserEmail').value='';
-    document.getElementById('newUserName').value='';
-    document.getElementById('newUserPass').value='';
-    alert('تمت إضافة المستخدم');
-  });
-
-  document.getElementById('listUsersBtn').addEventListener('click', ()=>{
-    const me = currentUser(); if(!me || me.role!=='owner') return alert('للمالك فقط');
-    const list = getUsers();
-    const el = document.getElementById('usersList');
-    if(!list.length){ el.innerHTML='لا مستخدمين'; return; }
-    let html = '<div style="max-height:260px;overflow:auto;padding:6px">';
-    list.forEach(u=>{
-      html += `<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px;border-bottom:1px dashed rgba(255,255,255,0.08)">
-        <div><b>${u.username}</b> <span class="muted">(${u.email})</span>
-          <div style="font-size:12px;color:var(--muted)">ID: ${u.id} — Role: ${u.role} ${u.banned?'<span class="pill bad">محظور</span>':''}</div></div>
-        <div style="display:flex;gap:6px">
-          ${u.role!=='owner'?`<button class="btn" data-action="ban" data-id="${u.id}">${u.banned?'إلغاء الحظر':'حظر (ID)'}</button>`:''}
-          ${u.role!=='owner'?`<button class="btn secondary" data-action="del" data-id="${u.id}">حذف</button>`:''}
-        </div>
-      </div>`;
-    });
-    html += '</div>';
-    el.innerHTML = html;
-
-    el.querySelectorAll('button[data-action]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = btn.dataset.id; const act = btn.dataset.action;
-        let list = getUsers();
-        const idx = list.findIndex(x=>x.id===id);
-        if(idx<0) return;
-        if(act==='ban'){ list[idx].banned = !list[idx].banned; setUsers(list); alert('تم تحديث حالة المستخدم'); document.getElementById('listUsersBtn').click(); }
-        if(act==='del'){ if(confirm('حذف المستخدم؟')){ list.splice(idx,1); setUsers(list); alert('تم الحذف'); document.getElementById('listUsersBtn').click(); }}
-      });
-    });
-  });
-
-  /* ======= Drug DB & calculations ======= */
-  const drugData = {
-    "Propofol":{ dose:{ infant:[2.5,3.0], child:[2.0,2.5], adult:2.5 }, max:{value:300,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["انخفاض ضغط الدم","توقف تنفس مؤقت","ألم عند الحقن","متلازمة التسريب الطويل PRIS"],
-      management:["رفع الساقين/سوائل/Vasopressors","تهوية ودعم تنفسي","Lidocaine قبل الحقن","إيقاف + دعم قلبي/كلوي"],
-      reduction:"ابدأ بجرعات صغيرة وقسّم الـbolus؛ راقب الضغط." },
-    "Midazolam":{ dose:{ infant:[0.05,0.1], child:[0.05,0.2], adult:0.15 }, max:{value:10,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["تهدئة مفرطة","انخفاض ضغط","رد فعل عكسي"],
-      management:["مراقبة وتنفس","تقليل الجرعة","Flumazenil عند الحاجة"],
-      reduction:"خفض تدريجي ومراقبة التنفس." },
-    "Fentanyl":{ dose:{ infant:[1,2], child:[2,3], adult:2 }, max:{value:300,unit:'µg'}, unitPerKg:'µg/kg',
-      side_effects:["تثبيط تنفسي","تباطؤ قلب","غثيان/قيء"],
-      management:["دعم تنفسي/Naloxone","مراقبة قلبية","مضاد غثيان"],
-      reduction:"جرعات صغيرة متفرقة أو CRI منخفض." },
-    "Ketamine":{ dose:{ infant:[2,3], child:[4,5], adult:1.5 }, max:{value:300,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["زيادة ضغط","تيبس","هلاوس الإفاقة"],
-      management:["مراقبة الضغط","Midazolam","بيئة هادئة"],
-      reduction:"أضِف بنزوديازيبين لتقليل خلل الإدراك." },
-    "Thiopental":{ dose:{ infant:[10,15], child:[10,12.5], adult:12.5 }, max:{value:400,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["كبت تنفسي","هبوط ضغط"], management:["تهوية وأكسجين","دعم الضغط"], reduction:"قسّم الجرعة أو استبدل عند لزم." },
-    "Etomidate":{ dose:{ infant:[0.15,0.3], child:[0.2,0.3], adult:0.3 }, max:{value:40,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["Myoclonus","كبت قشر الكظر"], management:["BZD لتقليلها","استخدام قصير"], reduction:"أقل جرعة فعّالة + BZD قبله." },
-    "Dexmedetomidine":{ dose:{ infant:[0.5,1.0], child:[1.0,2.0], adult:1.0 }, max:{value:200,unit:'µg'}, unitPerKg:'µg/kg',
-      side_effects:["بطء قلب","هبوط ضغط"], management:["مراقبة قلبية","علاج داعم"], reduction:"خفض سرعة التسريب ومراقبة ECG." },
-    "Isoflurane":{ dose:{ infant:[1.3,1.6], child:[1.3,1.6], adult:1.45 }, max:{value:100,unit:'%MAC'}, unitPerKg:'%MAC',
-      side_effects:["هبوط ضغط","كبت تنفسي"], management:["تعديل MAC","دعم تنفسي"], reduction:"خفض تدريجي والتركيز الأدنى الفعّال." },
-    "Succinylcholine":{ dose:{ infant:[1,2], child:[1,2], adult:1.5 }, max:{value:200,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["Hyperkalemia","MH (نادراً)"], management:["تهوية؛ Dantrolene عند الحاجة"], reduction:"تجنبه عند خطر فرط بوتاسيوم." },
-    "Lidocaine":{ dose:{ infant:[1,2], child:[2,3], adult:3 }, max:{value:300,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["تشنجات","هبوط ضغط"], management:["إيقاف؛ BZD للتشنجات"], reduction:"أقل جرعة فعالة + مراقبة." },
-    "Bupivacaine":{ dose:{ infant:[1,2], child:[2,2], adult:2 }, max:{value:200,unit:'mg'}, unitPerKg:'mg/kg',
-      side_effects:["سمية قلبية","تشنجات"], management:["Intralipid 20% ودعم"], reduction:"Lowest effective dose + ECG." }
-  };
-
-  const drugSelect = document.getElementById('drugDose');
-  Object.keys(drugData).forEach(name=>{
-    const o = document.createElement('option'); o.value = name; o.textContent = name; drugSelect.appendChild(o);
-  });
-
-  // Disease toggle
-  const patientHealth = document.getElementById('patientHealth');
-  const diseaseDiv = document.getElementById('diseaseDiv');
-  patientHealth.addEventListener('change', ()=> {
-    diseaseDiv.style.display = patientHealth.value === 'unhealthy' ? 'block' : 'none';
-    if(patientHealth.value === 'healthy') document.querySelectorAll('.diseaseChk').forEach(c=>c.checked=false);
-  });
-
-  const asaFactors = { I:1.00, II:0.95, III:0.85, IV:0.75, V:0.65 };
-  const diseaseFactors = { diabetes:0.95, heart:0.80, lung:0.85, liver:0.70, kidney:0.75, allergy:0.90, obesity:1.05 };
-
-  function toYears(val, unit){
-    const v = parseFloat(val);
-    if(isNaN(v) || v < 0) return NaN;
-    if(unit === 'years') return v;
-    if(unit === 'months') return v/12;
-    if(unit === 'days') return v/365;
-    return v;
-  }
-  function ageCategory(years){ if(years < 1) return 'infant'; if(years < 12) return 'child'; return 'adult'; }
-  function avgDose(dv){ return Array.isArray(dv) ? (dv[0]+dv[1])/2 : dv; }
-
-  function calculateTotalDose(drugName, weightKg, ageYears, asaClass, diseases){
-    const doc = drugData[drugName];
-    if(!doc) return null;
-    const cat = ageCategory(ageYears);
-    const perKg = avgDose(doc.dose[cat]);
-    if(doc.unitPerKg === '%MAC'){
-      let factor = asaFactors[asaClass] || 1.0;
-      diseases.forEach(d => { if(diseaseFactors[d]) factor *= diseaseFactors[d]; });
-      return { perKg, value: (perKg * factor), unit: '%MAC', capped:false, max:null };
-    }
-    let total = perKg * weightKg;
-    total *= (asaFactors[asaClass] || 1.0);
-    diseases.forEach(d => { if(diseaseFactors[d]) total *= diseaseFactors[d]; });
-    let capped=false, maxInfo=null;
-    if(doc.max && typeof doc.max.value === 'number'){
-      if(total > doc.max.value){ total = doc.max.value; capped=true; maxInfo=doc.max; }
-    }
-    const totalUnit = (doc.max && doc.max.unit) ? doc.max.unit : (doc.unitPerKg.includes('µg') ? 'µg' : 'mg');
-    return { perKg, value: total, unitPerKg: doc.unitPerKg, unitTotal: totalUnit, capped, max:maxInfo };
-  }
-
-  function fmt(n, unit){
-    if(unit==='µg') return Math.round(n) + ' µg';
-    if(n < 1) return n.toFixed(2)+' '+unit;
-    if(n < 10) return n.toFixed(2)+' '+unit;
-    return n.toFixed(1)+' '+unit;
-  }
-
-  function formatDoseDisplay(calc, weight, drugName){
-    if(!calc) return 'خطأ بالحساب';
-    if(calc.unit === '%MAC'){
-      const v = calc.value.toFixed(2);
-      return `<div class="pill">${drugName}</div>
-              <div class="pill">الوزن: ${weight} كغ</div>
-              <div class="pill">الجرعة/كغ: ${calc.perKg} %MAC</div>
-              <div class="pill good">النتيجة: ${v} %MAC</div>`;
-    }
-    const perKgUnit = calc.unitPerKg || 'mg/kg';
-    const totalUnit = calc.unitTotal || 'mg';
-    const totalTxt = fmt(calc.value, totalUnit);
-    const perKgTxt = `${calc.perKg} ${perKgUnit}`;
-    const sizeClass = (calc.value<= (totalUnit==='µg'?200:5)) ? 'warn' : (calc.value>(totalUnit==='µg'?2000:200) ? 'bad' : 'good');
-    const capTxt = calc.capped ? `<div class="pill bad">تم بلوغ الحد الأقصى: ${calc.max.value} ${calc.max.unit}</div>` : '';
-    return `<div class="pill">${drugName}</div>
-            <div class="pill">الوزن: ${weight} كغ</div>
-            <div class="pill">الجرعة/كغ: ${perKgTxt}</div>
-            <div class="pill ${sizeClass}">الإجمالي: ${totalTxt}</div>
-            ${capTxt}`;
-  }
-
-  function diseaseWarnings(diseases, drug){
-    if(!diseases || !diseases.length) return '';
-    const map = {
-      liver: `⚠️ أمراض كبدية: خفّض الجرعات المستقلبة كبديًا (${drug}).`,
-      kidney:`⚠️ أمراض كلوية: راقب التراكم، فكّر بتقليل الجرعة/الإطالة.`,
-      heart: `⚠️ أمراض قلبية: تجنّب هبوط الضغط/بطء القلب — راقب closely.`,
-      lung:  `⚠️ أمراض رئوية: انتبه لتثبيط التنفس خصوصًا مع الأفيونات/البنزوديازيبين.`,
-      diabetes:`ℹ️ سكري: راقب السكر والسوائل.`,
-      obesity:`ℹ️ سمنة: فكّر باستخدام LBW/AdjBW لبعض الأدوية.`,
-      allergy:`🚨 تحسس: تأكّد من عدم وجود حساسية معروفة للدواء/المذيب.`
+  // Tabs
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      ["panelDose","panelFluids","panelASA","panelChat","panelHistory","panelAdmin"]
+        .forEach(id=>document.getElementById(id).classList.add("hidden"));
+      document.getElementById(t.dataset.target).classList.remove("hidden");
     };
-    return diseases.map(d=>`<div class="sideEffect">${map[d]||'تنبيه سريري عام'}</div>`).join('');
-  }
-
-  function pushAudit(entry){
-    const list = LS.load(LS.auditKey) || [];
-    list.unshift(entry); // latest first
-    LS.save(LS.auditKey, list);
-  }
-
-  // calculate dose click
-  document.getElementById('calcDose').addEventListener('click', ()=>{
-    const me = currentUser(); if(!me) return alert('سجّل الدخول أولاً');
-    const weight = parseFloat(document.getElementById('weightDose').value);
-    const ageVal = parseFloat(document.getElementById('ageDose').value);
-    const ageUnit = document.getElementById('ageUnitDose').value;
-    const asaClass = document.getElementById('asaSelect').value;
-    const drug = drugSelect.value;
-    if(!weight || !ageVal || !drug){ alert('الرجاء إدخال الوزن والعمر واختيار الدواء'); return; }
-    const ageYears = toYears(ageVal, ageUnit);
-    if(isNaN(ageYears)){ alert('ادخل عمراً صحيحاً'); return; }
-    let diseases = [];
-    if(document.getElementById('patientHealth').value === 'unhealthy')
-      document.querySelectorAll('.diseaseChk:checked').forEach(ch=>diseases.push(ch.value));
-    const calc = calculateTotalDose(drug, weight, ageYears, asaClass, diseases);
-    const rEl = document.getElementById('doseResult');
-    rEl.innerHTML = formatDoseDisplay(calc, weight, drug);
-    document.getElementById('doseWarnings').innerHTML = diseaseWarnings(diseases, drug);
-
-    // side effects + reduction
-    const ddata = drugData[drug];
-    let effHTML = '';
-    ddata.side_effects.forEach((se,i)=>{
-      effHTML += `<div class="sideEffect"><b>عرض جانبي:</b> ${se}<br><b>التعامل:</b> ${ddata.management[i] || 'تدبير داعم عام'}</div>`;
-    });
-    effHTML += `<div style="margin-top:8px;padding:10px;border-radius:8px;background:rgba(10,82,117,0.07)"><b>طريقة تخفيف الجرعة / إدارة المخاطر:</b><div style="margin-top:6px">${ddata.reduction || 'تدابير داعمة عامة'}</div></div>`;
-    document.getElementById('doseEffects').innerHTML = effHTML;
-
-    // audit
-    pushAudit({ t: nowISO(), user: me.email, uid: me.id, type:'Dose',
-      input:{weight, age:ageVal, ageUnit, asaClass, drug, diseases},
-      result: rEl.textContent.trim()
-    });
   });
+  document.getElementById("btnGoHistory").onclick=()=>{
+    document.querySelector('[data-target="panelHistory"]').click();
+  };
 
-  // fluids with types
-  document.getElementById('calcFluids').addEventListener('click', ()=>{
-    const me = currentUser(); if(!me) return alert('سجّل الدخول أولاً');
-    const w = parseFloat(document.getElementById('weightFluid').value);
-    const ageVal = parseFloat(document.getElementById('ageFluid').value) || 0;
-    const ageUnit = document.getElementById('ageUnitFluid').value;
-    const type = document.getElementById('fluidType').value;
-    if(!w){ alert('أدخل الوزن'); return; }
-    const ageYears = toYears(ageVal, ageUnit) || 30;
-    let basePerKg;
-    if(ageYears < 1) basePerKg = 100;
-    else if(ageYears < 10) basePerKg = 50;
-    else basePerKg = 30;
-    const typeModifiers = { NS:1.0, LR:1.0, D5W:1.05, blood:0.5 };
-    const maintenance = Math.round(basePerKg * w * (typeModifiers[type]||1));
-    let bloodVol = Math.round((ageYears < 1 ? 85 : (ageYears < 10 ? 80 : 70)) * w);
-    let bloodInfo = '';
-    if(type === 'blood'){
-      const unitVol = 350;
-      const units = Math.max(1, Math.round(maintenance / unitVol));
-      bloodInfo = `<div style="margin-top:8px"><b>حاجة دم (وحدة ≈ ${unitVol} ml):</b> ${units} وحدة تقريباً</div>`;
+  /*************** Auth ***************/
+  document.getElementById("loginBtn").onclick=()=>signInWithEmailAndPassword(auth,emailInput.value,passInput.value).catch(e=>alert(e.message));
+  document.getElementById("googleBtn").onclick=()=>signInWithPopup(auth,new GoogleAuthProvider());
+  document.getElementById("logoutBtn").onclick=()=>signOut(auth);
+
+  onAuthStateChanged(auth, async (u)=>{
+    if(u){
+      currentUser=u;
+      const role = (u.email==="bama47686@gmail.com") ? "owner" : "user";
+      await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
+      const us = (await getDoc(doc(db,"users",u.uid))).data();
+      if(us?.banned){ alert("تم حظرك من الوصول للتطبيق."); await signOut(auth); return; }
+      currentRole=role;
+      userInfo.textContent=`${u.email} — Role: ${role}`;
+      tabAdmin.classList.toggle("hidden", role!=="owner");
+      btnAllHistory.classList.toggle("hidden", role!=="owner");
+      loginScreen.classList.add("hidden");
+      appEl.classList.remove("hidden");
+
+      initChat();
+      await loadMyHistory();
+      if(role==="owner"){ loadUsers(); await loadAllHistory(); }
+    }else{
+      appEl.classList.add("hidden");
+      loginScreen.classList.remove("hidden");
     }
-    const out = `<div><b>سائل صيانة (تقريبي / 24h):</b> ${maintenance} ml (${type})</div>
-      <div style="margin-top:6px"><b>حجم دم تقريبي:</b> ${bloodVol} ml</div>${bloodInfo}`;
-    document.getElementById('fluidResult').innerHTML = out;
-
-    pushAudit({ t: nowISO(), user: me.email, uid: me.id, type:'Fluids',
-      input:{weight:w, age:ageVal, ageUnit, type}, result: out.replace(/<[^>]+>/g,' ') });
   });
 
-  // airway
-  document.getElementById('calcAirway').addEventListener('click', ()=>{
-    const me = currentUser(); if(!me) return alert('سجّل الدخول أولاً');
-    const ageVal = parseFloat(document.getElementById('ageAirway').value);
-    const ageUnit = document.getElementById('ageUnitAirway').value;
-    const weight = parseFloat(document.getElementById('weightAirway').value) || null;
-    if(!ageVal){ alert('أدخل العمر'); return; }
-    const ageYears = toYears(ageVal, ageUnit);
-    let blade = '', ett = '';
-    if(ageYears < 1){ blade = 'Neonate/Infant blade 0-1'; ett = '3.0 - 3.5 mm (approx)'; }
-    else if(ageYears < 5){ blade = 'Pediatric blade 1-2'; ett = '4.0 - 4.5 mm'; }
-    else if(ageYears < 10){ blade = 'Pediatric blade 2'; ett = '5.0 - 5.5 mm'; }
-    else { blade = 'Standard adult blade (3-4)'; ett = '6.0 - 8.0 mm (حسب الجنس والوزن)'; }
-    let ettByAge = '';
-    if(ageYears >= 1 && ageYears < 12){
-      const e = Math.floor(ageYears/4 + 4);
-      ettByAge = ` — طريقة سريعة ETT (uncuffed): ${e}.0 mm`;
+  /*************** History Save/Load ***************/
+  async function saveHistory(obj){
+    if(!currentUser) return;
+    await addDoc(collection(db,"history"),{
+      ...obj,
+      uid:currentUser.uid,
+      email:currentUser.email,
+      createdAt: serverTimestamp()
+    });
+    // Refresh caches
+    await loadMyHistory();
+    if(currentRole==="owner" && showingAll) await loadAllHistory();
+  }
+
+  function fmtDate(ts){
+    if(!ts) return "";
+    const d = ts.toDate? ts.toDate(): new Date(ts);
+    return d.toLocaleString("ar-IQ");
+  }
+
+  function renderHistory(cards){
+    const q = (historySearch.value||"").trim().toLowerCase();
+    historyList.innerHTML="";
+    cards.filter(h=>{
+      if(!q) return true;
+      const hay = JSON.stringify(h).toLowerCase();
+      return hay.includes(q);
+    }).forEach(h=>{
+      const wrap=document.createElement("div");
+      wrap.className="card";
+      const inputs = h.inputs ? JSON.stringify(h.inputs).replaceAll('"','').replaceAll('{','').replaceAll('}','') : "—";
+      const result = h.result ? JSON.stringify(h.result).replaceAll('"','').replaceAll('{','').replaceAll('}','') : "—";
+      wrap.innerHTML = `
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <div><b>🧑‍⚕️ ${h.patientName || "—"}</b></div>
+          <div>${h.type? `<span class="chip">${h.type}</span>`:""}</div>
+        </div>
+        <div class="muted">${fmtDate(h.createdAt)} — ${h.email||""}</div>
+        <div class="divider"></div>
+        <div>📏 <span class="k">${inputs}</span></div>
+        <div>💊 <span class="k">${result}</span></div>
+        ${h.symptoms? `<div>⚠️ <span class="k">${h.symptoms}</span></div>`:""}
+        ${h.relief?   `<div>💡 <span class="k">${h.relief}</span></div>`:""}
+      `;
+      historyList.appendChild(wrap);
+    });
+    if(!historyList.children.length){
+      historyList.innerHTML = `<div class="muted">لا توجد سجلات مطابقة.</div>`;
     }
-    const out = `<div><b>شفرة مناسبة:</b> ${blade}</div><div style="margin-top:6px"><b>ETT اقتراح:</b> ${ett}${ettByAge}</div><div style="margin-top:8px;color:var(--muted)">نصائح: تأكد من أدوات الاسترجاع والتهوية ومقاسين احتياط.</div>`;
-    document.getElementById('airwayResult').innerHTML = out;
+  }
 
-    pushAudit({ t: nowISO(), user: me.email, uid: me.id, type:'Airway',
-      input:{age:ageVal, ageUnit, weight}, result: out.replace(/<[^>]+>/g,' ') });
-  });
+  async function loadMyHistory(){
+    if(!currentUser) return;
+    const qy = query(
+      collection(db,"history"),
+      where("uid","==",currentUser.uid),
+      orderBy("createdAt","desc")
+    );
+    const snap = await getDocs(qy);
+    myHistoryCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(!showingAll) renderHistory(myHistoryCache);
+  }
 
-  /* ======= Section Chats (persisted) ======= */
-  function loadChat(section){
-    const arr = LS.load(LS.chatKey(section)) || [];
-    return arr;
+  async function loadAllHistory(){
+    const qy = query(collection(db,"history"), orderBy("createdAt","desc"), limit(400));
+    const snap = await getDocs(qy);
+    allHistoryCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(showingAll) renderHistory(allHistoryCache);
   }
-  function saveChat(section, arr){
-    LS.save(LS.chatKey(section), arr);
-  }
-  function renderChat(section, boxId){
-    const box = document.getElementById(boxId);
-    const arr = loadChat(section);
-    box.innerHTML = arr.map(m=>`<div style="margin-bottom:6px"><b>${m.who}:</b> ${m.text}</div>`).join('');
-    box.scrollTop = box.scrollHeight;
-  }
-  function setupChat(section, sendBtnId, inputId, boxId, resetBtnId){
-    renderChat(section, boxId);
-    document.getElementById(sendBtnId).addEventListener('click', ()=>{
-      const me = currentUser(); if(!me) return alert('سجّل الدخول أولاً');
-      const input = document.getElementById(inputId);
-      const txt = input.value.trim(); if(!txt) return;
-      const arr = loadChat(section);
-      arr.push({who:`${me.username}`, text:txt, t:nowISO()});
-      // رد تجريبي محلي
-      arr.push({who:'AI', text:'(رد تجريبي محلي — لا يوجد اتصال خارجي)', t:nowISO()});
-      saveChat(section, arr);
-      input.value='';
-      renderChat(section, boxId);
+
+  btnMyHistory.onclick = ()=>{ showingAll=false; renderHistory(myHistoryCache); };
+  btnAllHistory.onclick = async ()=>{ if(currentRole!=="owner") return; showingAll=true; if(!allHistoryCache.length) await loadAllHistory(); renderHistory(allHistoryCache); };
+  historySearch.oninput = ()=>{ renderHistory(showingAll? allHistoryCache : myHistoryCache); };
+
+  /*************** Users (Owner) ***************/
+  async function loadUsers(){
+    const snap = await getDocs(collection(db,"users"));
+    const box  = document.getElementById("usersList");
+    box.innerHTML="";
+    snap.forEach(d=>{
+      const u = d.data();
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML = `
+        <div><b>${u.email||""}</b></div>
+        <div class="muted">UID: ${u.uid}</div>
+        <div class="muted">Role: ${u.role}</div>
+        <div class="toolbar" style="margin-top:6px">
+          <button class="btn ${u.banned? "btn-primary":"btn-danger"}" onclick="toggleBan('${u.uid}', ${!!u.banned})">
+            ${u.banned? "إلغاء الحظر":"حظر"}
+          </button>
+        </div>
+      `;
+      box.appendChild(card);
     });
-    document.getElementById(resetBtnId).addEventListener('click', ()=>{
-      if(confirm('مسح رسائل هذا القسم؟')){ saveChat(section, []); renderChat(section, boxId); }
+  }
+  window.toggleBan = async (uid,cur)=>{
+    await updateDoc(doc(db,"users",uid),{banned:!cur});
+    loadUsers();
+  };
+
+  /*************** Calculators ***************/
+  // جرعات
+  window.calcDose = async ()=>{
+    const w = +document.getElementById("doseWeight").value;
+    const name = document.getElementById("doseName").value.trim();
+    const notes= document.getElementById("doseNotes").value.trim();
+    const sym  = document.getElementById("doseSymptoms").value.trim();
+    const rel  = document.getElementById("doseRelief").value.trim();
+    if(!w || !name){ alert("الرجاء إدخال اسم المريض والوزن."); return; }
+
+    // أمثلة مبسطة، عدل حسب بروتوكولك
+    const result = {
+      Propofol: `${(2*w).toFixed(0)}–${(3*w).toFixed(0)} mg`,
+      Fentanyl:`${(1*w).toFixed(0)} mcg`,
+      Midazolam:`${(0.1*w).toFixed(1)} mg`
+    };
+    document.getElementById("doseResult").innerHTML =
+      Object.entries(result).map(([k,v])=>`<span class="chip">${k}: ${v}</span>`).join(" ");
+
+    await saveHistory({
+      type:"dose",
+      patientName:name,
+      inputs:{weight:w,notes},
+      result,
+      symptoms:sym,
+      relief:rel
+    });
+  };
+
+  // سوائل
+  window.calcFluids = async ()=>{
+    const w = +document.getElementById("fluidWeight").value;
+    const name = document.getElementById("fluidName").value.trim();
+    const sym  = document.getElementById("fluidSymptoms").value.trim();
+    const rel  = document.getElementById("fluidRelief").value.trim();
+    if(!w || !name){ alert("الرجاء إدخال اسم المريض والوزن."); return; }
+
+    // تقدير بسيط: 30 ml/kg/day
+    const fluids = `${(w*30).toFixed(0)} ml/day`;
+    document.getElementById("fluidResult").innerHTML = `<span class="chip">${fluids}</span>`;
+
+    await saveHistory({
+      type:"fluids",
+      patientName:name,
+      inputs:{weight:w},
+      result:{fluids},
+      symptoms:sym,
+      relief:rel
+    });
+  };
+
+  // ASA
+  window.calcASA = async ()=>{
+    const age = +document.getElementById("asaAge").value;
+    const name= document.getElementById("asaName").value.trim();
+    const sel = [...document.getElementById("asaCom").selectedOptions].map(o=>o.value);
+    const sym = document.getElementById("asaSymptoms").value.trim();
+    const rel = document.getElementById("asaRelief").value.trim();
+    if(!name || !age){ alert("الرجاء إدخال اسم المريض والعمر."); return; }
+
+    let score="ASA I";
+    if(sel.includes("فشل قلبي")||sel.includes("قصور كبدي/كلوي")) score="ASA IV";
+    else if(sel.includes("سكري غير مضبوط")||sel.includes("ضغط شديد")) score="ASA III";
+    else if(sel.includes("لا يوجد")||sel.length===0) score="ASA I";
+    else score="ASA II";
+    if(sel.includes("حالة إسعافية")) score += " (E)";
+
+    document.getElementById("asaResult").innerHTML = `<span class="chip">${score}</span>`;
+
+    await saveHistory({
+      type:"asa",
+      patientName:name,
+      inputs:{age,comorbidities:sel},
+      result:{score},
+      symptoms:sym,
+      relief:rel
+    });
+  };
+
+  /*************** Chat ***************/
+  function initChat(){
+    const qy = query(collection(db,"chat"), orderBy("time"));
+    onSnapshot(qy, snap=>{
+      const box=document.getElementById("chatBox");
+      box.innerHTML="";
+      snap.forEach(m=>{
+        const d=m.data();
+        const div=document.createElement("div");
+        div.className="msg";
+        div.innerHTML = `<b>${d.email||"مستخدم"}:</b> ${d.text||""}`;
+        box.appendChild(div);
+      });
+      box.scrollTop = box.scrollHeight;
     });
   }
-  setupChat('dose', 'doseChatSend','doseChatInput','doseChat','resetDoseChat');
-  setupChat('fluids','fluidChatSend','fluidChatInput','fluidChat','resetFluidChat');
-  setupChat('airway','airwayChatSend','airwayChatInput','airwayChat','resetAirwayChat');
+  document.getElementById("chatSend").onclick = async ()=>{
+    const inp=document.getElementById("chatInput");
+    const text=(inp.value||"").trim();
+    if(!text || !currentUser) return;
+    await addDoc(collection(db,"chat"),{
+      uid:currentUser.uid,
+      email:currentUser.email,
+      text,
+      time:serverTimestamp()
+    });
+    inp.value="";
+  };
 
-  /* ======= About Modal ======= */
-  document.getElementById('aboutBtn').addEventListener('click', ()=> document.getElementById('aboutModal').style.display='flex');
-  document.getElementById('closeAbout').addEventListener('click', ()=> document.getElementById('aboutModal').style.display='none');
-
-  /* ======= Scanner (BarcodeDetector if available) ======= */
-  const scanBtn = document.getElementById('scanBtn');
-  let scanning = false, streamRef=null;
-  scanBtn.addEventListener('click', async ()=>{
-    if(scanning) return stopScan();
-    const overlay = document.createElement('div');
-    overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.background='rgba(0,0,0,0.6)'; overlay.style.zIndex=10030; overlay.style.display='flex'; overlay.style.alignItems='center'; overlay.style.justifyContent='center';
-    overlay.innerHTML = `<div style="width:90%;max-width:720px;background:var(--card);color:var(--text);padding:12px;border-radius:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center"><b>ماسح كيس المريض</b><button id="closeCam" class="btn secondary">إغلاق</button></div>
-      <video id="camVideo" autoplay playsinline style="width:100%;margin-top:8px;border-radius:8px;background:#000"></video>
-      <div id="scanResult" style="margin-top:8px;color:var(--muted)">جارٍ البحث عن رمز...</div>
-    </div>`;
-    document.body.appendChild(overlay);
-    scanning = true;
-    const video = overlay.querySelector('#camVideo');
-    const resultEl = overlay.querySelector('#scanResult');
-    overlay.querySelector('#closeCam').addEventListener('click', ()=> stopScan());
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio:false });
-      streamRef = stream; video.srcObject = stream; await video.play();
-      if(window.BarcodeDetector){
-        const formats = await BarcodeDetector.getSupportedFormats();
-        const detector = new BarcodeDetector({formats});
-        const loop = async ()=>{
-          if(!scanning) return;
-          try{
-            const detections = await detector.detect(video);
-            resultEl.textContent = detections && detections.length ? ('تم الكشف: '+detections.map(d=>d.rawValue).join(' | ')) : 'لم يتم العثور على رمز — حرّك الكاميرا ببطء.';
-          }catch(e){ resultEl.textContent = 'خطأ بالمسح: ' + e.message; }
-          setTimeout(loop, 800);
-        };
-        loop();
-      } else {
-        resultEl.textContent = 'BarcodeDetector غير مدعوم في متصفحك.';
-      }
-    } catch(err){ alert('تعذر الوصول للكاميرا: ' + err.message); stopScan(); }
-    function stopScan(){ scanning=false; if(streamRef){ streamRef.getTracks().forEach(t=>t.stop()); streamRef=null; } overlay.remove(); }
-  });
-
-}); // DOMContentLoaded
 </script>
 </body>
-</html> 
+</html>
