@@ -299,35 +299,59 @@
   logoutBtn.onclick=()=>signOut(auth);
 
   onAuthStateChanged(auth, async (u)=>{
-    console.log("Auth state changed:", u);
-    if(u){
-      try{
-        currentUser=u;
-        const role=(u.email==="bama47686@gmail.com")?"owner":"user";
-        await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
-        const us=(await getDoc(doc(db,"users",u.uid))).data();
-        console.log("User doc:", us);
-        if(us?.banned){ authError.textContent="تم حظرك من الوصول للتطبيق."; await signOut(auth); return; }
-        currentRole=role;
-        userInfo.textContent=`${u.email} — Role: ${role}`;
-        tabAdmin.classList.toggle("hidden", role!=="owner");
-        btnAllHistory.classList.toggle("hidden", role!=="owner");
-        loginScreen.classList.add("hidden");
-        appEl.classList.remove("hidden");
+  console.log("Auth state changed:", u);
 
-        initChat();
-        await loadMyHistory();
-        if(role==="owner"){ loadUsers(); await loadAllHistory(); }
-      }catch(err){
-        console.error("Firestore error:",err);
-        toast("Firestore error: "+err.message);
-      }
-    }else{
-      banner("⚠️ لم يتم إرجاع User من Firebase — تحقق من Authorized domains أو المتصفح.");
-      appEl.classList.add("hidden");
-      loginScreen.classList.remove("hidden");
+  if(!u){
+    // 🚨 Debug واضح للموبايل
+    document.body.innerHTML = `
+      <div style="padding:40px;text-align:center;color:white;background:#0a1124;min-height:100vh">
+        <h2>⚠️ لم يتم تسجيل الدخول بشكل صحيح</h2>
+        <p>Firebase لم يرجّع مستخدم.</p>
+        <p>جرب تفتح الرابط من <b>Chrome/Safari</b> مباشرة (مو من داخل التطبيقات مثل تليغرام/فيسبوك).</p>
+        <p>المضيف الحالي: <b>${location.host}</b></p>
+      </div>
+    `;
+    return;
+  }
+
+  // ✅ إذا المستخدم موجود
+  try{
+    currentUser=u;
+    const role=(u.email==="bama47686@gmail.com")?"owner":"user";
+
+    // تحديث مستند المستخدم
+    await setDoc(doc(db,"users",u.uid),{
+      uid:u.uid,
+      email:u.email,
+      role,
+      banned:false
+    },{merge:true});
+
+    const us=(await getDoc(doc(db,"users",u.uid))).data();
+    console.log("User doc:", us);
+
+    if(us?.banned){
+      authError.textContent="تم حظرك من الوصول للتطبيق.";
+      await signOut(auth);
+      return;
     }
-  });
+
+    currentRole=role;
+    userInfo.textContent=`${u.email} — Role: ${role}`;
+    tabAdmin.classList.toggle("hidden", role!=="owner");
+    btnAllHistory.classList.toggle("hidden", role!=="owner");
+
+    loginScreen.classList.add("hidden");
+    appEl.classList.remove("hidden");
+
+    initChat();
+    await loadMyHistory();
+    if(role==="owner"){ loadUsers(); await loadAllHistory(); }
+  }catch(err){
+    console.error("Firestore error:",err);
+    toast("Firestore error: "+err.message);
+  }
+});
 
   /*************** History Save/Load ***************/
   async function saveHistory(obj){
