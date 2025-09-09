@@ -973,6 +973,53 @@ console.log('ANS Anesthesia app loaded.');
 
 /* ================== End of module ================ */
 </script>
+<script type="module">
+// OpenAI API Key
+const OPENAI_API_KEY = "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";
 
+// دالة لاستدعاء AI
+async function callAI(message) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: message }]
+    })
+  });
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+
+// تهيئة الشات لكل قسم
+function setupChat(btnId, chatId, inputId, section) {
+  document.getElementById(btnId).addEventListener('click', async ()=>{
+    const msg = document.getElementById(inputId).value.trim();
+    if(!msg) return;
+    const cb = document.getElementById(chatId);
+    cb.innerHTML += `<div><b>أنت:</b> ${msg}</div>`;
+    document.getElementById(inputId).value = '';
+    cb.scrollTop = cb.scrollHeight;
+
+    cb.innerHTML += `<div style="color:#aaa">⏳ جاري جلب الرد...</div>`;
+    try {
+      const reply = await callAI(`[${section}] ${msg}`);
+      cb.innerHTML += `<div style="color:#bfe9ff"><b>AI:</b> ${reply}</div>`;
+    } catch(e){
+      cb.innerHTML += `<div style="color:red">❌ خطأ بالاتصال بالذكاء الاصطناعي</div>`;
+    }
+    cb.scrollTop = cb.scrollHeight;
+  });
+}
+
+// ربط الشات للأقسام
+setupChat('doseChatSend','doseChat','doseChatInput','حساب الجرعات');
+setupChat('fluidChatSend','fluidChat','fluidChatInput','حساب السوائل والدم');
+setupChat('airwayChatSend','airwayChat','airwayChatInput','الارنغوسكوب & ETT');
+</script>
+  
 </body>
 </html>
