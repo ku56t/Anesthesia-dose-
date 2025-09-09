@@ -14,7 +14,7 @@
   body{margin:0;font-family:"Tahoma",system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
   a{color:inherit}
   .hidden{display:none!important}
-  .btn{cursor:pointer;padding:10px 14px;border-radius:12px;border:0;font-weight:700;transition:transform .05s}
+  .btn{cursor:pointer;padding:11px 16px;border-radius:12px;border:0;font-weight:700;transition:transform .05s}
   .btn:active{transform:scale(.98)}
   .btn-primary{background:var(--pri);color:var(--pri-ink)}
   .btn-danger{background:var(--danger);color:var(--danger-ink)}
@@ -87,7 +87,7 @@
     <div class="tab" data-target="panelHistory">🗂️ السجل</div>
   </div>
 
-  <!-- Dose -->
+  <!-- حساب الجرعات -->
   <div id="panelDose" class="card">
     <h3 class="title">⚖️ حساب الجرعات</h3>
     <div class="row">
@@ -105,7 +105,7 @@
     </div>
   </div>
 
-  <!-- Fluids -->
+  <!-- حساب السوائل -->
   <div id="panelFluids" class="card hidden">
     <h3 class="title">💧 حساب السوائل</h3>
     <div class="row">
@@ -150,7 +150,7 @@
     </div>
   </div>
 
-  <!-- Chat -->
+  <!-- الشات -->
   <div id="panelChat" class="card hidden">
     <h3 class="title">💬 الشات</h3>
     <div id="chatBox"></div>
@@ -160,7 +160,7 @@
     </div>
   </div>
 
-  <!-- History -->
+  <!-- السجل -->
   <div id="panelHistory" class="card hidden">
     <h3 class="title">🗂️ السجل</h3>
     <div class="toolbar" id="historyToolbar">
@@ -171,7 +171,7 @@
     <div id="historyList" class="grid"></div>
   </div>
 
-  <!-- Admin -->
+  <!-- لوحة المالك -->
   <div id="panelAdmin" class="card hidden">
     <h3 class="title">⚙️ لوحة المالك</h3>
     <div class="muted" style="margin-bottom:6px">عرض جميع المستخدمين مع إمكانية الحظر/إلغاء الحظر (حسب UID)</div>
@@ -183,7 +183,7 @@
 <div id="toast" class="toast hidden"></div>
 
 <script type="module">
-  /*************** Firebase (Modules) ***************/
+  /*************** Firebase ***************/
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { 
     getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
@@ -239,7 +239,7 @@
   };
 
   /*************** Auth ***************/
-  document.getElementById("loginBtn").onclick=()=>{
+  loginBtn.onclick=()=>{
     const email=emailInput.value.trim();
     const pass=passInput.value.trim();
     authError.textContent="";
@@ -251,7 +251,7 @@
         authError.textContent = `خطأ: ${e.code.replace("auth/","")} — ${e.message}`;
       });
   };
-  document.getElementById("googleBtn").onclick=()=>{
+  googleBtn.onclick=()=>{
     authError.textContent="";
     signInWithPopup(auth,new GoogleAuthProvider())
       .then(()=>toast("تم تسجيل الدخول بواسطة Google"))
@@ -260,26 +260,31 @@
         authError.textContent = `Google خطأ: ${e.code?.replace("auth/","")||""} — ${e.message}`;
       });
   };
-  document.getElementById("logoutBtn").onclick=()=>signOut(auth);
+  logoutBtn.onclick=()=>signOut(auth);
 
   onAuthStateChanged(auth, async (u)=>{
+    console.log("Auth state changed:", u);
     if(u){
-      currentUser=u;
-      // تعيين الدور: المالك حسب البريد
-      const role = (u.email==="bama47686@gmail.com") ? "owner" : "user";
-      await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
-      const us = (await getDoc(doc(db,"users",u.uid))).data();
-      if(us?.banned){ authError.textContent="تم حظرك من الوصول للتطبيق."; await signOut(auth); return; }
-      currentRole=role;
-      userInfo.textContent=`${u.email} — Role: ${role}`;
-      tabAdmin.classList.toggle("hidden", role!=="owner");
-      btnAllHistory.classList.toggle("hidden", role!=="owner");
-      loginScreen.classList.add("hidden");
-      appEl.classList.remove("hidden");
+      try{
+        currentUser=u;
+        const role=(u.email==="bama47686@gmail.com")?"owner":"user";
+        await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
+        const us=(await getDoc(doc(db,"users",u.uid))).data();
+        if(us?.banned){ authError.textContent="تم حظرك من الوصول للتطبيق."; await signOut(auth); return; }
+        currentRole=role;
+        userInfo.textContent=`${u.email} — Role: ${role}`;
+        tabAdmin.classList.toggle("hidden", role!=="owner");
+        btnAllHistory.classList.toggle("hidden", role!=="owner");
+        loginScreen.classList.add("hidden");
+        appEl.classList.remove("hidden");
 
-      initChat();
-      await loadMyHistory();
-      if(role==="owner"){ loadUsers(); await loadAllHistory(); }
+        initChat();
+        await loadMyHistory();
+        if(role==="owner"){ loadUsers(); await loadAllHistory(); }
+      }catch(err){
+        console.error("Firestore error:",err);
+        toast("Firestore error: "+err.message);
+      }
     }else{
       appEl.classList.add("hidden");
       loginScreen.classList.remove("hidden");
@@ -295,7 +300,6 @@
       email:currentUser.email,
       createdAt: serverTimestamp()
     });
-    // Refresh caches
     await loadMyHistory();
     if(currentRole==="owner" && showingAll) await loadAllHistory();
     toast("تم الحفظ في السجل ✅");
@@ -390,21 +394,21 @@
 
   /*************** Calculators ***************/
   // جرعات
-  document.getElementById("btnDoseCalc").onclick = async ()=>{
-    const w = +document.getElementById("doseWeight").value;
-    const name = document.getElementById("doseName").value.trim();
-    const notes= document.getElementById("doseNotes").value.trim();
-    const sym  = document.getElementById("doseSymptoms").value.trim();
-    const rel  = document.getElementById("doseRelief").value.trim();
+  btnDoseCalc.onclick = async ()=>{
+    const w = +doseWeight.value;
+    const name = doseName.value.trim();
+    const notes= doseNotes.value.trim();
+    const sym  = doseSymptoms.value.trim();
+    const rel  = doseRelief.value.trim();
     if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
-    // أمثلة مبسطة، عدل حسب بروتوكولك
+    // أمثلة (عدّل حسب بروتوكولك)
     const result = {
       Propofol: `${(2*w).toFixed(0)}–${(3*w).toFixed(0)} mg`,
       Fentanyl:`${(1*w).toFixed(0)} mcg`,
       Midazolam:`${(0.1*w).toFixed(1)} mg`
     };
-    document.getElementById("doseResult").innerHTML =
+    doseResult.innerHTML =
       Object.entries(result).map(([k,v])=>`<span class="chip">${k}: ${v}</span>`).join(" ");
 
     await saveHistory({
@@ -418,16 +422,16 @@
   };
 
   // سوائل
-  document.getElementById("btnFluidCalc").onclick = async ()=>{
-    const w = +document.getElementById("fluidWeight").value;
-    const name = document.getElementById("fluidName").value.trim();
-    const sym  = document.getElementById("fluidSymptoms").value.trim();
-    const rel  = document.getElementById("fluidRelief").value.trim();
+  btnFluidCalc.onclick = async ()=>{
+    const w = +fluidWeight.value;
+    const name = fluidName.value.trim();
+    const sym  = fluidSymptoms.value.trim();
+    const rel  = fluidRelief.value.trim();
     if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
     // تقدير بسيط: 30 ml/kg/day
     const fluids = `${(w*30).toFixed(0)} ml/day`;
-    document.getElementById("fluidResult").innerHTML = `<span class="chip">${fluids}</span>`;
+    fluidResult.innerHTML = `<span class="chip">${fluids}</span>`;
 
     await saveHistory({
       type:"fluids",
@@ -440,12 +444,12 @@
   };
 
   // ASA
-  document.getElementById("btnASACalc").onclick = async ()=>{
-    const age = +document.getElementById("asaAge").value;
-    const name= document.getElementById("asaName").value.trim();
-    const sel = [...document.getElementById("asaCom").selectedOptions].map(o=>o.value);
-    const sym = document.getElementById("asaSymptoms").value.trim();
-    const rel = document.getElementById("asaRelief").value.trim();
+  btnASACalc.onclick = async ()=>{
+    const age = +asaAge.value;
+    const name= asaName.value.trim();
+    const sel = [...asaCom.selectedOptions].map(o=>o.value);
+    const sym = asaSymptoms.value.trim();
+    const rel = asaRelief.value.trim();
     if(!name || !age){ toast("الرجاء إدخال اسم المريض والعمر."); return; }
 
     let score="ASA I";
@@ -455,7 +459,7 @@
     else score="ASA II";
     if(sel.includes("حالة إسعافية")) score += " (E)";
 
-    document.getElementById("asaResult").innerHTML = `<span class="chip">${score}</span>`;
+    asaResult.innerHTML = `<span class="chip">${score}</span>`;
 
     await saveHistory({
       type:"asa",
@@ -483,9 +487,8 @@
       box.scrollTop = box.scrollHeight;
     });
   }
-  document.getElementById("chatSend").onclick = async ()=>{
-    const inp=document.getElementById("chatInput");
-    const text=(inp.value||"").trim();
+  chatSend.onclick = async ()=>{
+    const text=(chatInput.value||"").trim();
     if(!text || !currentUser) return;
     await addDoc(collection(db,"chat"),{
       uid:currentUser.uid,
@@ -493,9 +496,9 @@
       text,
       time:serverTimestamp()
     });
-    inp.value="";
+    chatInput.value="";
   };
 
 </script>
 </body>
-</html>
+</html> 
