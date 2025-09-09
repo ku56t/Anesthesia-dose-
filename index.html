@@ -95,35 +95,17 @@ onAuthStateChanged(auth, async (u)=>{
 
   if(!u){
     // إذا ماكو مستخدم → أظهر شاشة الدخول
-    loginScreen.classList.remove("hidden");
-    appEl.classList.add("hidden");
-    authError.textContent = "⚠️ لم يتم تسجيل الدخول. افتح الرابط من Chrome/Safari (المضيف: " + location.host + ")";
+    document.getElementById("loginScreen").classList.remove("hidden");
+    document.getElementById("app").classList.add("hidden");
     return;
   }
 
-  // إذا دخل المستخدم
-  const role = (u.email === "bama47686@gmail.com") ? "owner" : "user";
-  await setDoc(doc(db,"users",u.uid), {
-    uid:u.uid,
-    email:u.email,
-    role,
-    banned:false
-  }, {merge:true});
+  // إذا أكو مستخدم → أخفي شاشة الدخول وأظهر التطبيق
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
 
-  const us = (await getDoc(doc(db,"users",u.uid))).data();
-  if(us?.banned){
-    authError.textContent = "❌ حسابك محظور";
-    await signOut(auth);
-    return;
-  }
-
-  currentUser = u;
-  currentRole = role;
-  userInfo.textContent = `${u.email} — Role: ${role}`;
-
-  // تبديل الشاشات
-  loginScreen.classList.add("hidden");
-  appEl.classList.remove("hidden");
+  // جرب نطبع الايميل حتى تتأكد
+  document.getElementById("userInfo").textContent = "مرحبا " + u.email;
 });
 </script>
 </body>
