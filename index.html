@@ -91,20 +91,39 @@ logoutBtn.onclick=()=>signOut(auth);
 
 // مراقبة المستخدم
 onAuthStateChanged(auth, async (u)=>{
-  console.log("Auth state changed:",u);
+  console.log("🔥 onAuthStateChanged fired. User =", u);
+
   if(!u){
-    loginScreen.classList.remove("hidden");
-    appEl.classList.add("hidden");
+    // ماكو مستخدم مسجل
+    document.getElementById("loginScreen").classList.remove("hidden");
+    document.getElementById("app").classList.add("hidden");
+
+    document.getElementById("authError").textContent = 
+      "⚠️ لم يتم تسجيل الدخول. جرب افتح الرابط من Chrome/Safari مباشرة. (المضيف: " + location.host + ")";
     return;
   }
-  // إذا دخل
-  const role=(u.email==="bama47686@gmail.com")?"owner":"user";
-  await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
+
+  // إذا دخل المستخدم
+  alert("✅ Welcome " + u.email); // ← تأكيد أنه وصل هنا
+
+  const role = (u.email === "bama47686@gmail.com") ? "owner" : "user";
+  await setDoc(doc(db,"users",u.uid),{
+    uid:u.uid,
+    email:u.email,
+    role,
+    banned:false
+  },{merge:true});
+
   const us=(await getDoc(doc(db,"users",u.uid))).data();
-  if(us?.banned){ toast("❌ حسابك محظور"); await signOut(auth); return; }
-  userInfo.textContent=`${u.email} — Role: ${role}`;
-  loginScreen.classList.add("hidden");
-  appEl.classList.remove("hidden");
+  if(us?.banned){
+    document.getElementById("authError").textContent = "❌ حسابك محظور";
+    await signOut(auth);
+    return;
+  }
+
+  document.getElementById("userInfo").textContent = `${u.email} — Role: ${role}`;
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
 });
 </script>
 </body>
