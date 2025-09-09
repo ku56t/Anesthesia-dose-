@@ -290,34 +290,7 @@
 
   logoutBtn.onclick=()=>signOut(auth);
 
-  onAuthStateChanged(auth, async (u)=>{
-    console.log("Auth state changed:", u);
-    if(u){
-      try{
-        currentUser=u;
-        const role=(u.email==="bama47686@gmail.com")?"owner":"user";
-        await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
-        const us=(await getDoc(doc(db,"users",u.uid))).data();
-        if(us?.banned){ authError.textContent="تم حظرك من الوصول للتطبيق."; await signOut(auth); return; }
-        currentRole=role;
-        userInfo.textContent=`${u.email} — Role: ${role}`;
-        tabAdmin.classList.toggle("hidden", role!=="owner");
-        btnAllHistory.classList.toggle("hidden", role!=="owner");
-        loginScreen.classList.add("hidden");
-        appEl.classList.remove("hidden");
-
-        initChat();
-        await loadMyHistory();
-        if(role==="owner"){ loadUsers(); await loadAllHistory(); }
-      }catch(err){
-        console.error("Firestore error:",err);
-        toast("Firestore error: "+err.message);
-      }
-    }else{
-      appEl.classList.add("hidden");
-      loginScreen.classList.remove("hidden");
-    }
-  });
+  
 
   /*************** History Save/Load ***************/
   async function saveHistory(obj){
@@ -330,6 +303,41 @@
     });
     await loadMyHistory();
     if(currentRole==="owner" && showingAll) await loadAllHistory();
+  onAuthStateChanged(auth, async (u)=>{
+  console.log("Auth state changed, user =", u);
+  if(u){
+    console.log("UID:", u.uid, "Email:", u.email);
+    try{
+      const role=(u.email==="bama47686@gmail.com")?"owner":"user";
+      console.log("Detected role =", role);
+      await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
+      const us=(await getDoc(doc(db,"users",u.uid))).data();
+      console.log("Firestore user doc =", us);
+      if(us?.banned){ 
+        authError.textContent="تم حظرك من الوصول للتطبيق."; 
+        await signOut(auth); 
+        return; 
+      }
+      // إذا وصل لهنا = تسجيل الدخول ناجح
+      currentUser=u;
+      currentRole=role;
+      userInfo.textContent=`${u.email} — Role: ${role}`;
+      tabAdmin.classList.toggle("hidden", role!=="owner");
+      btnAllHistory.classList.toggle("hidden", role!=="owner");
+      loginScreen.classList.add("hidden");
+      appEl.classList.remove("hidden");
+      console.log("✅ Application shown.");
+    }catch(err){
+      console.error("Firestore error:",err);
+      toast("Firestore error: "+err.message);
+    }
+  }else{
+    console.warn("No user from onAuthStateChanged.");
+    appEl.classList.add("hidden");
+    loginScreen.classList.remove("hidden");
+  }
+});
+    
     toast("تم الحفظ في السجل ✅");
   }
 
