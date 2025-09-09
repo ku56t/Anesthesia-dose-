@@ -4,14 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>ANS — نظام حسابات التخدير</title>
-
 <style>
   :root{
     --bg:#0a1124;--panel:#0f1830;--line:#1c2a4f;--text:#e8f0ff;--muted:#99a9d3;
     --pri:#3aa6ff;--pri-ink:#00122b;--danger:#ff5470;--danger-ink:#2b0010;--ghost:#162448;
+    --ok:#29d391;--warn:#ffb84d;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:"Tahoma",system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
+  a{color:#9ac7ff}
   .hidden{display:none!important}
   .btn{cursor:pointer;padding:11px 16px;border-radius:12px;border:0;font-weight:700;transition:transform .05s}
   .btn:active{transform:scale(.98)}
@@ -38,6 +39,7 @@
   .k{color:#9cc0ff}
   .toast{position:fixed;bottom:16px;left:16px;background:#10214a;border:1px solid var(--line);color:#dfe9ff;border-radius:12px;padding:10px 14px;z-index:99999}
   .banner{position:fixed;top:0;left:0;right:0;background:#1b2b57;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px;color:#cfe1ff;z-index:10000}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:#10224a;border:1px solid var(--line);border-radius:999px}
 </style>
 </head>
 <body>
@@ -55,7 +57,7 @@
 
 <!-- Login -->
 <div id="loginScreen" class="hidden" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px">
-  <div class="card" style="max-width:380px;width:100%">
+  <div class="card" style="max-width:420px;width:100%">
     <h3 class="title">تسجيل الدخول</h3>
     <label>البريد</label><input id="emailInput" type="email" placeholder="you@example.com" />
     <label>كلمة المرور</label><input id="passInput" type="password" placeholder="••••••••" />
@@ -94,8 +96,8 @@
   <div id="panelDose" class="card">
     <h3 class="title">⚖️ حساب الجرعات</h3>
     <div class="row">
-      <div class="col"><label>اسم المريض</label><input id="doseName" /></div>
-      <div class="col"><label>الوزن (كغ)</label><input id="doseWeight" type="number" /></div>
+      <div class="col"><label>اسم المريض</label><input id="doseName" placeholder="مثال: أحمد علي" /></div>
+      <div class="col"><label>الوزن (كغ)</label><input id="doseWeight" type="number" placeholder="70" /></div>
       <div class="col"><label>ملاحظات</label><input id="doseNotes" placeholder="حساسية، أدوية ثابتة..." /></div>
     </div>
     <div class="row">
@@ -112,12 +114,12 @@
   <div id="panelFluids" class="card hidden">
     <h3 class="title">💧 حساب السوائل</h3>
     <div class="row">
-      <div class="col"><label>اسم المريض</label><input id="fluidName" /></div>
-      <div class="col"><label>الوزن (كغ)</label><input id="fluidWeight" type="number" /></div>
+      <div class="col"><label>اسم المريض</label><input id="fluidName" placeholder="مثال: سارة محمد" /></div>
+      <div class="col"><label>الوزن (كغ)</label><input id="fluidWeight" type="number" placeholder="65" /></div>
     </div>
     <div class="row">
-      <div class="col"><label>الأعراض</label><textarea id="fluidSymptoms" rows="2"></textarea></div>
-      <div class="col"><label>طرق التخفيف</label><textarea id="fluidRelief" rows="2"></textarea></div>
+      <div class="col"><label>الأعراض</label><textarea id="fluidSymptoms" rows="2" placeholder="عطش، جفاف..."></textarea></div>
+      <div class="col"><label>طرق التخفيف</label><textarea id="fluidRelief" rows="2" placeholder="IV Fluids..."></textarea></div>
     </div>
     <div class="toolbar">
       <button class="btn btn-primary" id="btnFluidCalc">احسب</button>
@@ -129,8 +131,8 @@
   <div id="panelASA" class="card hidden">
     <h3 class="title">📊 تقييم ASA</h3>
     <div class="row">
-      <div class="col"><label>اسم المريض</label><input id="asaName" /></div>
-      <div class="col"><label>العمر</label><input id="asaAge" type="number" /></div>
+      <div class="col"><label>اسم المريض</label><input id="asaName" placeholder="اسم المريض" /></div>
+      <div class="col"><label>العمر</label><input id="asaAge" type="number" placeholder="35" /></div>
       <div class="col">
         <label>مرافق</label>
         <select id="asaCom" multiple style="min-height:104px">
@@ -189,7 +191,8 @@
   /*************** Firebase ***************/
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { 
-    getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
+    getAuth, setPersistence, browserLocalPersistence,
+    onAuthStateChanged, signInWithEmailAndPassword, 
     GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut 
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import { 
@@ -209,6 +212,11 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db   = getFirestore(app);
+
+  // إجبار حفظ الجلسة بالـ localStorage (يعالج بقاء شاشة الدخول)
+  setPersistence(auth, browserLocalPersistence)
+    .then(()=>console.log("✅ Persistence = localStorage"))
+    .catch(err=>console.error("Persistence error:",err));
 
   /*************** UI helpers ***************/
   const splash       = document.getElementById("splash");
@@ -290,7 +298,36 @@
 
   logoutBtn.onclick=()=>signOut(auth);
 
-  
+  onAuthStateChanged(auth, async (u)=>{
+    console.log("Auth state changed:", u);
+    if(u){
+      try{
+        currentUser=u;
+        const role=(u.email==="bama47686@gmail.com")?"owner":"user";
+        await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
+        const us=(await getDoc(doc(db,"users",u.uid))).data();
+        console.log("User doc:", us);
+        if(us?.banned){ authError.textContent="تم حظرك من الوصول للتطبيق."; await signOut(auth); return; }
+        currentRole=role;
+        userInfo.textContent=`${u.email} — Role: ${role}`;
+        tabAdmin.classList.toggle("hidden", role!=="owner");
+        btnAllHistory.classList.toggle("hidden", role!=="owner");
+        loginScreen.classList.add("hidden");
+        appEl.classList.remove("hidden");
+
+        initChat();
+        await loadMyHistory();
+        if(role==="owner"){ loadUsers(); await loadAllHistory(); }
+      }catch(err){
+        console.error("Firestore error:",err);
+        toast("Firestore error: "+err.message);
+      }
+    }else{
+      banner("⚠️ لم يتم إرجاع User من Firebase — تحقق من Authorized domains أو المتصفح.");
+      appEl.classList.add("hidden");
+      loginScreen.classList.remove("hidden");
+    }
+  });
 
   /*************** History Save/Load ***************/
   async function saveHistory(obj){
@@ -303,41 +340,6 @@
     });
     await loadMyHistory();
     if(currentRole==="owner" && showingAll) await loadAllHistory();
-  onAuthStateChanged(auth, async (u)=>{
-  console.log("Auth state changed, user =", u);
-  if(u){
-    console.log("UID:", u.uid, "Email:", u.email);
-    try{
-      const role=(u.email==="bama47686@gmail.com")?"owner":"user";
-      console.log("Detected role =", role);
-      await setDoc(doc(db,"users",u.uid),{uid:u.uid,email:u.email,role,banned:false},{merge:true});
-      const us=(await getDoc(doc(db,"users",u.uid))).data();
-      console.log("Firestore user doc =", us);
-      if(us?.banned){ 
-        authError.textContent="تم حظرك من الوصول للتطبيق."; 
-        await signOut(auth); 
-        return; 
-      }
-      // إذا وصل لهنا = تسجيل الدخول ناجح
-      currentUser=u;
-      currentRole=role;
-      userInfo.textContent=`${u.email} — Role: ${role}`;
-      tabAdmin.classList.toggle("hidden", role!=="owner");
-      btnAllHistory.classList.toggle("hidden", role!=="owner");
-      loginScreen.classList.add("hidden");
-      appEl.classList.remove("hidden");
-      console.log("✅ Application shown.");
-    }catch(err){
-      console.error("Firestore error:",err);
-      toast("Firestore error: "+err.message);
-    }
-  }else{
-    console.warn("No user from onAuthStateChanged.");
-    appEl.classList.add("hidden");
-    loginScreen.classList.remove("hidden");
-  }
-});
-    
     toast("تم الحفظ في السجل ✅");
   }
 
@@ -345,6 +347,13 @@
     if(!ts) return "";
     const d = ts.toDate? ts.toDate(): new Date(ts);
     return d.toLocaleString("ar-IQ");
+  }
+
+  function cleanKV(o){
+    if(!o) return "—";
+    try{
+      return Object.entries(o).map(([k,v])=>`${k}: ${v}`).join(" | ");
+    }catch{return String(o)}
   }
 
   function renderHistory(cards){
@@ -357,8 +366,6 @@
     }).forEach(h=>{
       const wrap=document.createElement("div");
       wrap.className="card";
-      const inputs = h.inputs ? JSON.stringify(h.inputs).replaceAll('"','').replaceAll('{','').replaceAll('}','') : "—";
-      const result = h.result ? JSON.stringify(h.result).replaceAll('"','').replaceAll('{','').replaceAll('}','') : "—";
       wrap.innerHTML = `
         <div class="row" style="align-items:center;justify-content:space-between">
           <div><b>🧑‍⚕️ ${h.patientName || "—"}</b></div>
@@ -366,8 +373,8 @@
         </div>
         <div class="muted">${fmtDate(h.createdAt)} — ${h.email||""}</div>
         <div class="divider"></div>
-        <div>📏 <span class="k">${inputs}</span></div>
-        <div>💊 <span class="k">${result}</span></div>
+        ${h.inputs? `<div>📏 <span class="k">${cleanKV(h.inputs)}</span></div>`:""}
+        ${h.result? `<div>💊 <span class="k">${cleanKV(h.result)}</span></div>`:""}
         ${h.symptoms? `<div>⚠️ <span class="k">${h.symptoms}</span></div>`:""}
         ${h.relief?   `<div>💡 <span class="k">${h.relief}</span></div>`:""}
       `;
@@ -411,13 +418,18 @@
       const card=document.createElement("div");
       card.className="card";
       card.innerHTML = `
-        <div><b>${u.email||""}</b></div>
-        <div class="muted">UID: ${u.uid}</div>
-        <div class="muted">Role: ${u.role}</div>
-        <div class="toolbar" style="margin-top:6px">
-          <button class="btn ${u.banned? "btn-primary":"btn-danger"}" onclick="toggleBan('${u.uid}', ${!!u.banned})">
-            ${u.banned? "إلغاء الحظر":"حظر"}
-          </button>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div>
+            <div><b>${u.email||""}</b></div>
+            <div class="muted">UID: ${u.uid}</div>
+            <div class="muted">Role: ${u.role}</div>
+          </div>
+          <div class="toolbar">
+            <span class="pill" title="الحالة">${u.banned? "🚫 محظور":"✅ فعال"}</span>
+            <button class="btn ${u.banned? "btn-primary":"btn-danger"}" onclick="toggleBan('${u.uid}', ${!!u.banned})">
+              ${u.banned? "إلغاء الحظر":"حظر"}
+            </button>
+          </div>
         </div>
       `;
       box.appendChild(card);
@@ -438,6 +450,7 @@
     const rel  = doseRelief.value.trim();
     if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
+    // مثال بسيط — عدل القيم حسب بروتوكولك
     const result = {
       Propofol: `${(2*w).toFixed(0)}–${(3*w).toFixed(0)} mg`,
       Fentanyl:`${(1*w).toFixed(0)} mcg`,
@@ -464,6 +477,7 @@
     const rel  = fluidRelief.value.trim();
     if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
+    // معادلة تقريبية: 30 مل/كغ/اليوم — عدّلها إذا تحتاج
     const fluids = `${(w*30).toFixed(0)} ml/day`;
     fluidResult.innerHTML = `<span class="chip">${fluids}</span>`;
 
