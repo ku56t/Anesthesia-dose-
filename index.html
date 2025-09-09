@@ -12,7 +12,6 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:"Tahoma",system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text)}
-  a{color:inherit}
   .hidden{display:none!important}
   .btn{cursor:pointer;padding:11px 16px;border-radius:12px;border:0;font-weight:700;transition:transform .05s}
   .btn:active{transform:scale(.98)}
@@ -38,9 +37,13 @@
   .divider{height:1px;background:var(--line);margin:8px 0}
   .k{color:#9cc0ff}
   .toast{position:fixed;bottom:16px;left:16px;background:#10214a;border:1px solid var(--line);color:#dfe9ff;border-radius:12px;padding:10px 14px;z-index:99999}
+  .banner{position:fixed;top:0;left:0;right:0;background:#1b2b57;border-bottom:1px solid var(--line);padding:6px 10px;font-size:12px;color:#cfe1ff;z-index:10000}
 </style>
 </head>
 <body>
+
+<!-- Debug Banner -->
+<div id="dbg" class="banner hidden"></div>
 
 <!-- Splash -->
 <div id="splash" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#07112a;z-index:9999">
@@ -187,7 +190,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { 
     getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
-    GoogleAuthProvider, signInWithPopup, signOut 
+    GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut 
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import { 
     getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, 
@@ -219,10 +222,16 @@
   const historySearch= document.getElementById("historySearch");
   const toastEl      = document.getElementById("toast");
   const authError    = document.getElementById("authError");
+  const dbg          = document.getElementById("dbg");
   let currentUser=null, currentRole="user", showingAll=false, allHistoryCache=[], myHistoryCache=[];
 
-  function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove("hidden"); setTimeout(()=>toastEl.classList.add("hidden"),3000); }
+  function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove("hidden"); setTimeout(()=>toastEl.classList.add("hidden"),3500); }
+  function banner(msg){ dbg.textContent=msg; dbg.classList.remove("hidden"); }
   setTimeout(()=>splash.classList.add("hidden"),1000);
+
+  // Global error traps
+  window.addEventListener("error", (e)=>{ console.error("WindowError:", e.message, e.error); toast("خطأ: "+e.message); });
+  window.addEventListener("unhandledrejection", (e)=>{ console.error("PromiseRejection:", e.reason); toast("وعد مرفوض: "+(e.reason?.message||e.reason)); });
 
   // Tabs
   document.querySelectorAll(".tab").forEach(t=>{
@@ -234,9 +243,17 @@
       document.getElementById(t.dataset.target).classList.remove("hidden");
     };
   });
-  document.getElementById("btnGoHistory").onclick=()=>{
-    document.querySelector('[data-target="panelHistory"]').click();
-  };
+  document.getElementById("btnGoHistory").onclick=()=>{ document.querySelector('[data-target="panelHistory"]').click(); };
+
+  /*************** Domain check (Authorized domains) ***************/
+  (function checkDomain(){
+    const host = location.host;
+    const ok = /(localhost|127\.0\.0\.1|github\.io|render\.com)$/i.test(host);
+    if(!ok){
+      banner("⚠️ قد تكون على دومين غير مضاف في Firebase Authorized domains: "+host);
+      console.warn("Add this domain in Firebase Authorized domains:", host);
+    }
+  })();
 
   /*************** Auth ***************/
   loginBtn.onclick=()=>{
@@ -251,15 +268,26 @@
         authError.textContent = `خطأ: ${e.code.replace("auth/","")} — ${e.message}`;
       });
   };
-  googleBtn.onclick=()=>{
+
+  // Google with Popup → fallback to Redirect if blocked
+  googleBtn.onclick=async ()=>{
     authError.textContent="";
-    signInWithPopup(auth,new GoogleAuthProvider())
-      .then(()=>toast("تم تسجيل الدخول بواسطة Google"))
-      .catch(e=>{
-        console.error(e);
-        authError.textContent = `Google خطأ: ${e.code?.replace("auth/","")||""} — ${e.message}`;
-      });
+    const provider = new GoogleAuthProvider();
+    try{
+      await signInWithPopup(auth, provider);
+      toast("تم تسجيل الدخول بواسطة Google");
+    }catch(e){
+      console.warn("Popup failed, using redirect.", e);
+      authError.textContent = "محاولة تحويل (Redirect) بسبب حجب النوافذ المنبثقة...";
+      await signInWithRedirect(auth, provider);
+    }
   };
+
+  // Handle redirect result (if any)
+  getRedirectResult(auth).then(res=>{
+    if(res?.user){ toast("تم إكمال تسجيل Google (Redirect)"); }
+  }).catch(e=>{ console.error("Redirect error:", e); toast("Redirect error: "+e.message); });
+
   logoutBtn.onclick=()=>signOut(auth);
 
   onAuthStateChanged(auth, async (u)=>{
@@ -402,7 +430,6 @@
     const rel  = doseRelief.value.trim();
     if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
-    // أمثلة (عدّل حسب بروتوكولك)
     const result = {
       Propofol: `${(2*w).toFixed(0)}–${(3*w).toFixed(0)} mg`,
       Fentanyl:`${(1*w).toFixed(0)} mcg`,
@@ -429,7 +456,6 @@
     const rel  = fluidRelief.value.trim();
     if(!w || !name){ toast("الرجاء إدخال اسم المريض والوزن."); return; }
 
-    // تقدير بسيط: 30 ml/kg/day
     const fluids = `${(w*30).toFixed(0)} ml/day`;
     fluidResult.innerHTML = `<span class="chip">${fluids}</span>`;
 
