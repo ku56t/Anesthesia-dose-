@@ -1136,50 +1136,75 @@ document.getElementById("loginBtn").addEventListener("click", async ()=>{
 });
 
 // تسجيل دخول عادي
+// تسجيل دخول أو إنشاء حساب تلقائي
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
   const email = document.getElementById("loginEmail").value.trim();
   const pass = document.getElementById("loginPass").value.trim();
-  try{
-    const cred = await signInWithEmailAndPassword(auth, email, pass);
-    const user = cred.user;
-    let role = "user";
-    if(email === OWNER_EMAIL){
-      role = "owner";
+  try {
+    let cred;
+    try {
+      // نحاول تسجيل الدخول أولاً
+      cred = await signInWithEmailAndPassword(auth, email, pass);
+    } catch(err) {
+      if (err.code === "auth/user-not-found") {
+        // إذا الحساب غير موجود → ننشئه مباشرة
+        cred = await createUserWithEmailAndPassword(auth, email, pass);
+      } else {
+        throw err;
+      }
     }
-    await setDoc(doc(db,'users',user.uid), { email:user.email, uid:user.uid, role, createdAt: serverTimestamp() }, { merge:true });
+    const user = cred.user;
+    let role = (email === OWNER_EMAIL) ? "owner" : "user";
+    await setDoc(doc(db,'users',user.uid), {
+      email:user.email,
+      uid:user.uid,
+      role,
+      createdAt: serverTimestamp()
+    }, { merge:true });
     loginScreen.style.display = "none";
-  }catch(err){ alert("فشل تسجيل الدخول: " + err.message); }
+  } catch(err) {
+    alert("❌ خطأ أثناء تسجيل الدخول: " + err.message);
+  }
 });
 
-// تسجيل دخول عبر Google
+// تسجيل دخول عبر Google (يضيف المستخدم إذا مو موجود)
 document.getElementById("googleLoginBtn").addEventListener("click", async ()=>{
-  try{
+  try {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    let role = "user";
-    if(user.email === OWNER_EMAIL){
-      role = "owner";
-    }
-    await setDoc(doc(db,'users',user.uid), { email:user.email, uid:user.uid, role, createdAt: serverTimestamp() }, { merge:true });
+    let role = (user.email === OWNER_EMAIL) ? "owner" : "user";
+    await setDoc(doc(db,'users',user.uid), {
+      email:user.email,
+      uid:user.uid,
+      role,
+      createdAt: serverTimestamp()
+    }, { merge:true });
     loginScreen.style.display = "none";
-  }catch(err){ alert("فشل تسجيل الدخول عبر Google: " + err.message); }
+  } catch(err) {
+    alert("❌ خطأ أثناء تسجيل الدخول عبر Google: " + err.message);
+  }
 });
 
 // إنشاء حساب جديد
 document.getElementById("signupBtn").addEventListener("click", async ()=>{
   const email = document.getElementById("signupEmail").value.trim();
   const pass = document.getElementById("signupPass").value.trim();
-  try{
+  try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    let role = "user";
-    if(email === OWNER_EMAIL){
-      role = "owner";
-    }
-    await setDoc(doc(db,'users',cred.user.uid), { email:cred.user.email, uid:cred.user.uid, role, createdAt: serverTimestamp() });
+    const user = cred.user;
+    let role = (email === OWNER_EMAIL) ? "owner" : "user";
+    await setDoc(doc(db,'users',user.uid), {
+      email:user.email,
+      uid:user.uid,
+      role,
+      createdAt: serverTimestamp()
+    });
     signupScreen.style.display = "none";
     loginScreen.style.display = "none";
-  }catch(err){ alert("فشل إنشاء الحساب: " + err.message); }
+  } catch(err) {
+    alert("❌ فشل إنشاء الحساب: " + err.message);
+  }
 });
 </script>
 
