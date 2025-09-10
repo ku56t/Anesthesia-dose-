@@ -1115,22 +1115,24 @@ setupChat('airwayChatSend','airwayChat','airwayChatInput','الارنغوسكو�
 
 <script type="module">
 // نستخدم auth, db الموجودين بالكود الأصلي
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-import { setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+// بدون import
+// نستخدم auth, db مباشرة من الكود الأصلي
 
 const OWNER_EMAIL = "bama47686@gmail.com";
 const OWNER_PASS = "mustafa@2006#2";
 
-const loginScreen = document.getElementById("loginScreen");
-const signupScreen = document.getElementById("signupScreen");
-
-document.getElementById("goSignup").addEventListener("click", ()=>{
-  loginScreen.style.display = "none";
-  signupScreen.style.display = "flex";
-});
-document.getElementById("goLogin").addEventListener("click", ()=>{
-  signupScreen.style.display = "none";
-  loginScreen.style.display = "flex";
+document.getElementById("loginBtn").addEventListener("click", async ()=>{
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value.trim();
+  try{
+    const cred = await firebase.auth().signInWithEmailAndPassword(email, pass);
+    const user = cred.user;
+    let role = (email === OWNER_EMAIL) ? "owner" : "user";
+    await db.collection("users").doc(user.uid).set({
+      email:user.email, uid:user.uid, role, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
+    document.getElementById("loginScreen").style.display = "none";
+  }catch(err){ alert("فشل تسجيل الدخول: " + err.message); }
 });
 
 // تسجيل دخول عادي
