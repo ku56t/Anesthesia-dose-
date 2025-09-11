@@ -369,22 +369,7 @@
 <!-- Firebase & App Script (module) -->
 <script type="module">
 /* ===================== Firebase init ===================== */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, setDoc, doc, getDoc, getDocs, query, where, updateDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAZUYrFNedms77FWlksMJV3yCETywoJAZw",
-  authDomain: "anesthesia-dose-262e3.firebaseapp.com",
-  projectId: "anesthesia-dose-262e3",
-  storageBucket: "anesthesia-dose-262e3.appspot.com",
-  messagingSenderId: "602244448093",
-  appId: "1:602244448093:web:0a8d9905849126086ff2b4",
-  measurementId: "G-SCHMQFCK3J"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 /* ===================== Settings & constants ===================== */
 const OWNER_EMAIL = "bama47686@gmail.com"; // owner fixed
@@ -1192,15 +1177,7 @@ setupChat('airwayChatSend','airwayChat','airwayChatInput','الارنغوسكو�
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   // ✅ إعداد Firebase Config (قيم مشروعك)
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZUYrFNedms77FWlksMJV3yCETywoJAZw",
-    authDomain: "anesthesia-dose-262e3.firebaseapp.com",
-    projectId: "anesthesia-dose-262e3",
-    storageBucket: "anesthesia-dose-262e3.firebasestorage.app",
-    messagingSenderId: "602244448093",
-    appId: "1:602244448093:web:0a8d9905849126086ff2b4",
-    measurementId: "G-SCHMQFCK3J"
-  };
+  
 
   // تهيئة Firebase
   const app = initializeApp(firebaseConfig);
