@@ -560,10 +560,8 @@ loginBtn.addEventListener('click', async ()=>{
   const pass = document.getElementById('loginPass').value.trim();
   if(!email||!pass){ alert('ادخل ايميل وكلمة مرور'); return; }
   try{
-    const cred = await signInWithEmailAndPassword(auth,email,pass);
-    // hide modal (onAuthStateChanged will handle)
+    await signInWithEmailAndPassword(auth,email,pass);
   }catch(err){
-    // if not exists, ask to create
     if(err.code === 'auth/user-not-found'){
       const create = confirm('المستخدم غير موجود — انشاء حساب جديد؟');
       if(create){
@@ -574,7 +572,7 @@ loginBtn.addEventListener('click', async ()=>{
   }
 });
 
-// create owner (one-click) - will only create if not exists
+// create owner (one-click)
 createOwnerBtn.addEventListener('click', async ()=>{
   try{
     const methods = await fetchSignInMethodsForEmail(auth, OWNER_EMAIL);
@@ -593,26 +591,29 @@ onAuthStateChanged(auth, async (user)=> {
     authModal.style.display='none';
     document.getElementById('app').style.zIndex = 5;
     userInfo.textContent = user.email + (user.email===OWNER_EMAIL ? ' — مالك' : '');
-    // ensure user doc
     try{
       const uref = doc(db,'users',user.uid);
       const ud = await getDoc(uref);
       if(!ud.exists()){
-        await setDoc(uref, { email:user.email, uid:user.uid, role: user.email===OWNER_EMAIL ? 'owner' : 'user', createdAt: serverTimestamp() });
+        await setDoc(uref, { email:user.email, uid:user.uid,
+          role: user.email===OWNER_EMAIL ? 'owner' : 'user',
+          createdAt: serverTimestamp() });
       }
       const role = (await getDoc(uref)).data().role || (user.email===OWNER_EMAIL ? 'owner' : 'user');
-      if(role==='owner'){ ownerBadge.style.display='inline-block'; document.getElementById('panelAdmin').style.display='block'; populateUsersList(); populateHistory(); loadStats(); } else ownerBadge.style.display='none';
-      // default panel
+      if(role==='owner'){
+        ownerBadge.style.display='inline-block';
+        document.getElementById('panelAdmin').style.display='block';
+        populateUsersList(); populateHistory(); loadStats();
+      } else ownerBadge.style.display='none';
       showPanel('panelDose');
     }catch(e){ console.error(e); }
   } else {
-    // force show modal
     authModal.style.display='flex';
     document.getElementById('app').style.zIndex = 1;
   }
 });
 
-  // إنشاء حساب يدوي للمستخدم العادي
+// إنشاء حساب يدوي للمستخدم العادي
 const signupBtn = document.getElementById('signupBtn');
 if (signupBtn) {
   signupBtn.addEventListener('click', async ()=>{
