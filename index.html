@@ -1309,6 +1309,19 @@ setupChat('airwayChatSend','airwayChat','airwayChatInput','الارنغوسكو�
       alert("❌ فشل إنشاء الحساب: " + err.message);
     }
   });
+ <script>
+  window.addEventListener("load", () => {
+    // ننتظر 4 ثواني (مدة الأنيميشن)
+    setTimeout(() => {
+      // إخفاء شاشة التحميل
+      const splash = document.querySelector(".splash");
+      if (splash) splash.style.display = "none";
+
+      // إظهار التطبيق
+      const app = document.getElementById("app");
+      if (app) app.style.display = "block";
+    }, 4200); // 4.2 ثانية
+  });
 </script>
 
 </html>
