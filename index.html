@@ -9,6 +9,41 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+
+  /* ===== تحسين واجهة نافذة تسجيل الدخول ===== */
+#authModal {
+  z-index: 9999;                 /* فوق الفقاعات والأشرطة */
+}
+#authModal > div {
+  padding: 20px;                 /* حشوة داخلية مريحة */
+  max-width: 340px;              /* عرض مناسب للهاتف */
+  margin: auto;
+}
+#authModal input[type="email"],
+#authModal input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+/* توزيع الأزرار على عمود واحد مع مسافة مناسبة */
+#authModal .btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* زر Google مميز */
+#googleLogin {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+/* زر الوضع الداكن/الفاتح أكثر وضوحًا */
+#toggleTheme {
+  border: 1px solid rgba(255,255,255,0.3);
+}
   :root{
     --bg-dark:#071223; --bg-dark-2:#04293a; --card:#081e2a;
     --accent:#0a9bd6; --accent-2:#11cdef; --glass:rgba(255,255,255,0.03);
