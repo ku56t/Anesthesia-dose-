@@ -765,15 +765,6 @@ async function requireLogin(){
     alert('خطأ بتسجيل الدخول: ' + (err && err.message ? err.message : err));
   }
 }
-onAuthStateChanged(auth, async (user)=>{
-  if(user && user.email === "bama47686@gmail.com"){
-    hideSplash();
-    document.getElementById("adminPanel").style.display = "block";
-    document.getElementById("adminEmail").textContent = user.email;
-    return; // لا نظهر الداشبورد العادي
-  }
-  if(user){
-    try{ hideSplash(); }catch(e){}
 
     // check banned
     const bannedDoc = await getDoc(doc(db,'banned',user.uid)).catch(()=>null);
