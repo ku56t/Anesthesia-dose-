@@ -7,7 +7,14 @@
 
 <!-- ********** ستايل متكامل (Dark/Light ready) ********** -->
 <style>
-  :root{
+  .splash-bar.dev{animation:barOutDev 5s cubic-bezier(.2,.9,.3,1) forwards}
+.splash-bar.mid{animation:barOutMid 5s cubic-bezier(.2,.9,.3,1) forwards}
+.splash-bar.top{animation:barOutTop 5s cubic-bezier(.2,.9,.3,1) forwards}
+
+@keyframes barOutTop{0%{transform:translateX(0);opacity:1}60%{opacity:1}100%{transform:translateX(-150%);opacity:0}}
+@keyframes barOutMid{0%{transform:translateX(0);opacity:1}60%{opacity:1}100%{transform:translateY(-120%);opacity:0}}
+@keyframes barOutDev{0%{transform:translateX(0);opacity:1}60%{opacity:1}100%{transform:translateX(150%);opacity:0}}
+ :root{
     --bg-dark:#071223; --bg-dark-2:#0b3045; --card:#0f2333;
     --accent:#0a9bd6; --accent-2:#11cdef; --glass: rgba(255,255,255,0.04);
     --success:#16a34a; --danger:#ff5252;
