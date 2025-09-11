@@ -386,7 +386,15 @@ function toYears(val, unit){ const v=parseFloat(val); if(isNaN(v)||v<0) return N
 function ageCategory(years){ if(years<1) return 'infant'; if(years<12) return 'child'; return 'adult'; }
 function avgDose(dv){ return Array.isArray(dv)?(dv[0]+dv[1])/2:dv; }
 const asaFactors = { I:1.00, II:0.95, III:0.85, IV:0.75, V:0.65 };
-const diseaseFactors = { diabetes:0.95, heart:0.8, lung:0.85 };
+const diseaseFactors = {
+  diabetes: 0.95,
+  heart: 0.80,
+  lung: 0.85,
+  liver: 0.70,
+  kidney: 0.75,
+  allergy: 0.90,
+  obesity: 1.05
+};
 
 function calculateTotalDose(drugName, weightKg, ageYears, asaClass, diseases){
   const doc = drugData[drugName]; if(!doc) return null;
