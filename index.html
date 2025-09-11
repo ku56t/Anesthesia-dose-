@@ -732,84 +732,7 @@ function stopScanner(){
 }
 
 /* ========== AUTH: mandatory login flow ========== */
-/* We implement a modal-less flow: show prompt sign-in UI (custom) — mandatory before using app.
-   For brevity we prompt with built-in prompt() but also provide Google sign-in via popup.
-   For production, replace prompts with nice modal forms.
-*/
 
-
-/* REMOVED nested Firebase Auth Script (merged into main module) */
-
-
-/* Observe auth state and enforce mandatory login */
-
-async function requireLogin(){
-  // If a prepared login screen exists (created elsewhere), show it. Otherwise use a simple prompt fallback.
-  const loginEl = document.getElementById('loginScreen');
-  if(loginEl){
-    loginEl.style.display = 'flex';
-    appWrap.style.display = 'none';
-    return;
-  }
-  // fallback prompt (basic): use signInWithEmailAndPassword from Firebase auth
-  try{
-    const email = prompt('أدخل بريدك الإلكتروني:');
-    const pass = prompt('أدخل كلمة المرور:');
-    if(email && pass){
-      await signInWithEmailAndPassword(auth, email, pass);
-    } else {
-      // no credentials provided
-      return;
-    }
-  }catch(err){
-    alert('خطأ بتسجيل الدخول: ' + (err && err.message ? err.message : err));
-  }
-}
-
-    // check banned
-    const bannedDoc = await getDoc(doc(db,'banned',user.uid)).catch(()=>null);
-    if(bannedDoc && bannedDoc.exists()){
-      alert('تم حظرك من قبل مسؤول الموقع. لا يمكنك الدخول.');
-      await signOut(auth);
-      location.reload();
-      return;
-    }
-    // ensure user doc exists
-    const userDocRef = doc(db,'users',user.uid);
-    const ud = await getDoc(userDocRef);
-    if(!ud.exists()){
-      // set default role 'user' except owner email
-      const role = (user.email === OWNER_EMAIL) ? 'owner' : 'user';
-      await setDoc(userDocRef, { email:user.email, role, uid:user.uid, createdAt: serverTimestamp() });
-    }
-    // populate UI
-    userInfoEl.textContent = `${user.email}`;
-    // show owner controls if owner
-    const ud2 = await getDoc(userDocRef);
-    const role = ud2.exists() ? ud2.data().role : (user.email === OWNER_EMAIL ? 'owner' : 'user');
-    if(role === 'owner'){
-      document.getElementById('ownerControls').style.display = 'block';
-      // ensure owner doc exists
-      await setDoc(userDocRef, { email:user.email, role:'owner', uid:user.uid }, { merge:true });
-      // also show admin content
-      document.getElementById('adminContent').innerHTML = `<div class="muted">مرحباً مالك الموقع — لديك صلاحيات كاملة.</div>`;
-      populateUsersList();
-      populateHistory(); // show recent
-    } else {
-      document.getElementById('ownerControls').style.display = 'none';
-      document.getElementById('adminContent').innerHTML = `<div class="muted">لوحة المسؤول خاصة بالمالك فقط.</div>`;
-    }
-  } else {
-    // not signed in -> require login
-    await requireLogin();
-  }
-});
-
-/* Logout */
-btnLogout.addEventListener('click', async ()=>{
-  await signOut(auth);
-  location.reload();
-});
 
 /* ========== Owner: manage users and ban/unban ========= */
 async function populateUsersList(){
@@ -1214,6 +1137,134 @@ setupChat('airwayChatSend','airwayChat','airwayChatInput','الارنغوسكو�
       alert("❌ فشل إنشاء الحساب: " + err.message);
     }
   });
+
+/* ========== AUTH: mandatory login flow ========== */
+
+// مرجع العناصر
+const appWrap     = document.getElementById('app');
+const loginScreen = document.getElementById('loginScreen');
+const userInfoEl  = document.getElementById('userInfo');
+const btnLogout   = document.getElementById('btnLogout');
+
+// استدعاء Firebase
+import { 
+  onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut,
+  fetchSignInMethodsForEmail, setDoc, doc, getDoc,
+  serverTimestamp, collection, getDocs, orderBy, query
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+// مراقبة حالة المستخدم
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    // تحقق من الحظر
+    const bannedDoc = await getDoc(doc(db, 'banned', user.uid)).catch(()=>null);
+    if (bannedDoc && bannedDoc.exists()) {
+      alert('تم حظرك من قبل مسؤول الموقع.');
+      await signOut(auth);
+      return;
+    }
+
+    // إنشاء سجل المستخدم إن لم يكن موجوداً
+    const userDocRef = doc(db,'users',user.uid);
+    const ud = await getDoc(userDocRef);
+    if (!ud.exists()) {
+      const role = (user.email === OWNER_EMAIL) ? 'owner' : 'user';
+      await setDoc(userDocRef, { email:user.email, role, uid:user.uid, createdAt: serverTimestamp() });
+    }
+
+    // تحديث الواجهة
+    userInfoEl.textContent = user.email;
+    const role = (await getDoc(userDocRef)).data().role || (user.email === OWNER_EMAIL ? 'owner' : 'user');
+    if (role === 'owner') {
+      document.getElementById('ownerControls').style.display = 'block';
+      document.getElementById('adminContent').innerHTML =
+        `<div class="muted">مرحباً مالك الموقع — لديك صلاحيات كاملة.</div>`;
+      populateUsersList();
+      populateHistory();
+    } else {
+      document.getElementById('ownerControls').style.display = 'none';
+      document.getElementById('adminContent').innerHTML =
+        `<div class="muted">لوحة المسؤول خاصة بالمالك فقط.</div>`;
+    }
+
+    loginScreen.style.display = 'none';
+    appWrap.style.display = 'block';
+
+  } else {
+    // إذا لم يسجل دخول
+    await requireLogin();
+  }
+});
+
+// دالة تسجيل الدخول الإلزامي
+async function requireLogin() {
+  if (loginScreen) {
+    loginScreen.style.display = 'flex';
+    appWrap.style.display = 'none';
+  } else {
+    // في حال لم يكن هناك شاشة تسجيل دخول مصممة
+    const email = prompt('أدخل بريدك الإلكتروني:');
+    const pass  = prompt('أدخل كلمة المرور:');
+    if (email && pass) {
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (err) {
+        alert('خطأ بتسجيل الدخول: ' + (err && err.message ? err.message : err));
+      }
+    }
+  }
+}
+
+// زر تسجيل خروج
+btnLogout.addEventListener('click', async () => {
+  await signOut(auth);
+});
+
+// إدارة المستخدمين للمالك
+async function populateUsersList(){
+  const ul = document.getElementById('usersList');
+  ul.innerHTML = '<div class="muted">جارٍ التحميل...</div>';
+  const snaps = await getDocs(query(collection(db,'users'), orderBy('email','asc')));
+  ul.innerHTML = '';
+  snaps.forEach(s => {
+    const d = s.data();
+    const row = document.createElement('div');
+    row.style.padding='8px';
+    row.style.borderBottom='1px solid rgba(255,255,255,0.03)';
+    row.innerHTML = `<div style="display:flex;gap:12px;justify-content:space-between;align-items:center">
+      <div><strong>${d.email}</strong>
+        <div class="muted">UID: ${d.uid} — Role: ${d.role||'user'}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn ghost" onclick="toggleBan('${d.uid}','${d.email}')">حظر/إلغاء</button>
+        <button class="btn ghost" onclick="setRole('${d.uid}','user')">اجعل مستخدم</button>
+        <button class="btn ghost" onclick="setRole('${d.uid}','owner')">اجعل مالك</button>
+      </div>
+    </div>`;
+    ul.appendChild(row);
+  });
+}
+window.populateUsersList = populateUsersList;
+
+async function toggleBan(uid,email){
+  const bannedRef = doc(db,'banned',uid);
+  const bb = await getDoc(bannedRef);
+  if (bb.exists()) {
+    await setDoc(bannedRef, { banned:false, uid }, { merge:true });
+    alert(`${email} تم إلغاء الحظر`);
+  } else {
+    await setDoc(bannedRef, { banned:true, uid, by: auth.currentUser ? auth.currentUser.email : null, createdAt: serverTimestamp() });
+    alert(`${email} تم حظره`);
+  }
+  populateUsersList();
+}
+
+async function setRole(uid,role){
+  await setDoc(doc(db,'users',uid), { role }, { merge:true });
+  alert('تم تغيير الصلاحية');
+  populateUsersList();
+}
 </script>
 
 </html>
