@@ -376,25 +376,96 @@ for(let i=0;i<30;i++){
 document.getElementById('toggleTheme').addEventListener('click', ()=> document.body.classList.toggle('light'));
 
 // ---------------- Drug DB (extended) ----------------
+/* بيانات الأدوية */
 const drugData = {
-  "Propofol":{dose:{infant:[2.5,3.0],child:[2.0,2.5],adult:2.5},max:{value:300,unit:'mg'},unitPerKg:'mg/kg',side_effects:["انخفاض ضغط الدم","توقف تنفّس مؤقت","ألم عند الحقن"],management:["سوائل، Vasopressors","دعم التنفّس","Lidocaine قبل الحقن"],reduce:"ابدأ بجرعة تحميل منخفضة"},
-  "Fentanyl":{dose:{infant:[1,2],child:[2,3],adult:2},max:{value:300,unit:'µg'},unitPerKg:'µg/kg',side_effects:["تثبيط تنفسي","تباطؤ نبض القلب"],management:["دعم تنفّسي","Naloxone عند الحاجة"],reduce:"قسم الجرعة"},
-  "Midazolam":{dose:{infant:[0.05,0.1],child:[0.05,0.2],adult:0.15},max:{value:10,unit:'mg'},unitPerKg:'mg/kg',side_effects:["تهدئة مفرطة","هبوط ضغط"],management:["مراقبة وتنفس","Flumazenil عند الحاجة"],reduce:"قلل الجرعة في كبار السن"},
-  "Ketamine":{dose:{infant:[2,3],child:[4,5],adult:1.5},const drugData = {
-  "Propofol":{dose:{infant:[2.5,3.0],child:[2.0,2.5],adult:2.5},max:{value:300,unit:'mg'},unitPerKg:'mg/kg',side_effects:["انخفاض ضغط الدم","توقف تنفّس مؤقت","ألم عند الحقن","Propofol infusion syndrome"],management:["سوائل/أو Vasopressors","دعم التنفّس وتهوية","Lidocaine قبل الحقن","إيقاف التسريب ودعم قلبي/تنفسي"],reduce:"ابدأ بجرعة تحميل منخفضة أو استخدم تسريب مستمر بطيء، قلل الجرعة في كبار السن ومرضى القلب."},
-  "Fentanyl":{dose:{infant:[1,2],child:[2,3],adult:2},max:{value:300,unit:'µg'},unitPerKg:'µg/kg',side_effects:["تثبيط تنفسي","تباطؤ نبض القلب","غثيان/قيء"],management:["دعم تنفّس، Naloxone عند الحاجة","مراقبة قلبية","أدوية مضادة للغثيان"],reduce:"استخدم جرعات مقسمة (titrate) وابتعد عن الجرعات عالية التركيز في كبار السن والمصابين بأمراض رئوية."},
-  "Midazolam":{dose:{infant:[0.05,0.1],child:[0.05,0.2],adult:0.15},max:{value:10,unit:'mg'},unitPerKg:'mg/kg',side_effects:["تهدئة مفرطة","هبوط ضغط","ردود عكسية نادرة"],management:["مراقبة وعناية تنفّسية","تقليل الجرعة أو Flumazenil (مضاد)"],reduce:"قلل الجرعة في كبار السن وأيضًا عند انخفاض وظائف الكبد."},
-  "Ketamine":{dose:{infant:[2,3],child:[4,5],adult:1.5},max:{value:300,unit:'mg'},unitPerKg:'mg/kg',side_effects:["زيادة ضغط الدم","تيبّس عضلي","هلوسة عند الإفاقة"],management:["مراقبة ضغط ونبض","Midazolam كمهدئ عند الحاجة","بيئة هادئة للمرضى"],reduce:"استخدام جرعات أصغر عند كبار السن وخلطها مع مسكنات أو بنزوديازيبين لتقليل الهلوسة."},
-  "Lidocaine":{dose:{infant:[1,2],child:[2,3],adult:3},max:{value:300,unit:'mg'},unitPerKg:'mg/kg',side_effects:["تشنجات","هبوط ضغط"],management:["إيقاف التسريب، Benzodiazepine للتشنجات"],reduce:"حساب الجرعة إجمالي mg مع مراعاة جرعات موضعية/مركزة وتخفيض عند ضعف الكبد."},
-  "Etomidate":{dose:{infant:[0.15,0.3],child:[0.2,0.3],adult:0.3},max:{value:40,unit:'mg'},unitPerKg:'mg/kg',side_effects:["Myoclonus","قمع محور الغدد الكظرية"],management:["Benzodiazepine للتقليل","استخدام قصير المدى"],reduce:"لا يفضل التسريب المستمر، استخدم أقل جرعة فعّالة."},
-  "Thiopental":{dose:{infant:[10,15],child:[10,12.5],adult:12.5},max:{value:400,unit:'mg'},unitPerKg:'mg/kg',side_effects:["كبت تنفسي","هبوط ضغط"],management:["تهوية/أكسجين","دعم ضغط الدم"],reduce:"تجنّب الجرعات الكبيرة في كبار السن ومرضى القلب."},
-  "Dexmedetomidine":{dose:{infant:[0.5,1.0],child:[1.0,2.0],adult:1.0},max:{value:200,unit:'µg'},unitPerKg:'µg/kg',side_effects:["بطء قلب","هبوط ضغط"],management:["مراقبة قلبية","علاج داعم حسب الحاجة"],reduce:"خفض جرعة التحميل أو الاستغناء عنها عند المرضى الضعفاء."},
-  "Isoflurane":{dose:{infant:[1.3,1.6],child:[1.3,1.6],adult:1.45},max:{value:100,unit:'%MAC'},unitPerKg:'%MAC',side_effects:["هبوط ضغط","كبت تنفّسي"],management:["تعديل التركيز ودعم تنفّسي"],reduce:"ابدأ بMAC منخفض في كبار السن وقلل تدريجياً."},
-  "Succinylcholine":{dose:{infant:[1,2],child:[1,2],adult:1.5},max:{value:200,unit:'mg'},unitPerKg:'mg/kg',side_effects:["Hyperkalemia","Malignant Hyperthermia (نادر)"],management:["تهوية اصطناعية","Dantrolene عند MH"],reduce:"تجنّب استخدامها في المرضى المعرضين لخطر Hyperkalemia."},
-  "Bupivacaine":{dose:{infant:[1,2],child:[2,2],adult:2},max:{value:200,unit:'mg'},unitPerKg:'mg/kg',side_effects:["سمية قلبية","تشنجات"],management:["Intralipid 20%، دعم قلب/تنفس"],reduce:"استعمل أقل تركيز وكمية كافية وتجنّب الجرعات المتراكمة."}
-};ney: 0.75,
-  allergy: 0.90,
-  obesity: 1.05
+  "Propofol": {
+    dose: { infant:[2.5,3.0], child:[2.0,2.5], adult:2.5 },
+    max: { value:300, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["انخفاض ضغط الدم","توقف تنفّس مؤقت","ألم عند الحقن","Propofol infusion syndrome"],
+    management:["سوائل/أو Vasopressors","دعم التنفّس وتهوية","Lidocaine قبل الحقن","إيقاف التسريب ودعم قلبي/تنفسي"],
+    reduce:"ابدأ بجرعة تحميل منخفضة أو استخدم تسريب مستمر بطيء، قلل الجرعة في كبار السن ومرضى القلب."
+  },
+  "Fentanyl": {
+    dose:{ infant:[1,2], child:[2,3], adult:2 },
+    max:{ value:300, unit:'µg' },
+    unitPerKg:'µg/kg',
+    side_effects:["تثبيط تنفسي","تباطؤ نبض القلب","غثيان/قيء"],
+    management:["دعم تنفّس، Naloxone عند الحاجة","مراقبة قلبية","أدوية مضادة للغثيان"],
+    reduce:"استخدم جرعات مقسمة وابتعد عن الجرعات عالية التركيز في كبار السن أو مرضى الرئة."
+  },
+  "Midazolam": {
+    dose:{ infant:[0.05,0.1], child:[0.05,0.2], adult:0.15 },
+    max:{ value:10, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["تهدئة مفرطة","هبوط ضغط","ردود عكسية نادرة"],
+    management:["مراقبة وعناية تنفّسية","تقليل الجرعة أو Flumazenil"],
+    reduce:"قلل الجرعة في كبار السن أو مرضى الكبد."
+  },
+  "Ketamine": {
+    dose:{ infant:[2,3], child:[4,5], adult:1.5 },
+    max:{ value:300, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["زيادة ضغط الدم","تيبّس عضلي","هلوسة عند الإفاقة"],
+    management:["مراقبة ضغط ونبض","Midazolam كمهدئ","بيئة هادئة"],
+    reduce:"استخدام جرعات أصغر عند كبار السن وخلطها مع مسكنات لتقليل الهلوسة."
+  },
+  "Lidocaine": {
+    dose:{ infant:[1,2], child:[2,3], adult:3 },
+    max:{ value:300, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["تشنجات","هبوط ضغط"],
+    management:["إيقاف التسريب، Benzodiazepine للتشنجات"],
+    reduce:"حساب الجرعة الإجمالية مع مراعاة وظائف الكبد."
+  },
+  "Etomidate": {
+    dose:{ infant:[0.15,0.3], child:[0.2,0.3], adult:0.3 },
+    max:{ value:40, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["Myoclonus","قمع محور الغدة الكظرية"],
+    management:["Benzodiazepine للتقليل","استخدام قصير المدى"],
+    reduce:"استخدم أقل جرعة فعّالة."
+  },
+  "Thiopental": {
+    dose:{ infant:[10,15], child:[10,12.5], adult:12.5 },
+    max:{ value:400, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["كبت تنفسي","هبوط ضغط"],
+    management:["تهوية/أكسجين","دعم ضغط الدم"],
+    reduce:"تجنّب الجرعات الكبيرة في كبار السن ومرضى القلب."
+  },
+  "Dexmedetomidine": {
+    dose:{ infant:[0.5,1.0], child:[1.0,2.0], adult:1.0 },
+    max:{ value:200, unit:'µg' },
+    unitPerKg:'µg/kg',
+    side_effects:["بطء قلب","هبوط ضغط"],
+    management:["مراقبة قلبية","علاج داعم"],
+    reduce:"خفض جرعة التحميل أو الاستغناء عنها عند المرضى الضعفاء."
+  },
+  "Isoflurane": {
+    dose:{ infant:[1.3,1.6], child:[1.3,1.6], adult:1.45 },
+    max:{ value:100, unit:'%MAC' },
+    unitPerKg:'%MAC',
+    side_effects:["هبوط ضغط","كبت تنفسي"],
+    management:["تعديل التركيز ودعم تنفسي"],
+    reduce:"ابدأ بMAC منخفض في كبار السن وقلل تدريجياً."
+  },
+  "Succinylcholine": {
+    dose:{ infant:[1,2], child:[1,2], adult:1.5 },
+    max:{ value:200, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["Hyperkalemia","Malignant Hyperthermia (نادر)"],
+    management:["تهوية اصطناعية","Dantrolene عند MH"],
+    reduce:"تجنّب في المرضى المعرضين لفرط البوتاسيوم."
+  },
+  "Bupivacaine": {
+    dose:{ infant:[1,2], child:[2,2], adult:2 },
+    max:{ value:200, unit:'mg' },
+    unitPerKg:'mg/kg',
+    side_effects:["سمية قلبية","تشنجات"],
+    management:["Intralipid 20%، دعم قلبي وتنفس"],
+    reduce:"استعمل أقل تركيز وتجنّب الجرعات المتراكمة."
+  }
 };
 
 function calculateTotalDose(drugName, weightKg, ageYears, asaClass, diseases){
