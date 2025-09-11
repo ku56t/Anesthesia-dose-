@@ -1265,6 +1265,78 @@ async function setRole(uid,role){
   alert('تم تغيير الصلاحية');
   populateUsersList();
 }
+<!-- === إصلاح تدفق تسجيل الدخول === -->
+<script type="module">
+// تأكد أنك أدخلت إعدادات firebaseConfig أعلاه
+
+import {
+  onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut,
+  GoogleAuthProvider, signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+// عناصر واجهة الدخول
+const loginScreen = document.getElementById("loginScreen");
+const appWrap     = document.getElementById("app");
+const loginBtn    = document.getElementById("loginBtn");
+const signupBtn   = document.getElementById("signupBtn");
+const googleBtn   = document.getElementById("googleLogin");
+const btnLogout   = document.getElementById("btnLogout");
+
+// تسجيل دخول بالبريد
+loginBtn?.addEventListener("click", async ()=>{
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass  = document.getElementById("loginPass").value.trim();
+  if(!email || !pass){ alert("أدخل البريد وكلمة المرور"); return; }
+  try{
+    await signInWithEmailAndPassword(auth, email, pass);
+  }catch(err){
+    if(err.code === "auth/user-not-found"){
+      if(confirm("المستخدم غير موجود. إنشاء حساب جديد؟")){
+        try{
+          await createUserWithEmailAndPassword(auth,email,pass);
+          alert("تم إنشاء الحساب. يمكنك تسجيل الدخول الآن.");
+        }catch(e){ alert("خطأ إنشاء الحساب: "+e.message); }
+      }
+    } else alert("خطأ تسجيل الدخول: "+err.message);
+  }
+});
+
+// إنشاء حساب يدوي
+signupBtn?.addEventListener("click", async ()=>{
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass  = document.getElementById("loginPass").value.trim();
+  if(!email || !pass){ alert("أدخل البريد وكلمة المرور"); return; }
+  try{
+    await createUserWithEmailAndPassword(auth,email,pass);
+    alert("تم إنشاء الحساب بنجاح.");
+  }catch(e){ alert("خطأ: "+e.message); }
+});
+
+// تسجيل Google
+googleBtn?.addEventListener("click", async ()=>{
+  try{
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  }catch(e){ alert("فشل تسجيل Google: "+e.message); }
+});
+
+// تسجيل خروج
+btnLogout?.addEventListener("click", async ()=>{
+  await signOut(auth);
+});
+
+// مراقبة حالة المستخدم
+onAuthStateChanged(auth, user=>{
+  if(user){
+    loginScreen.style.display = "none";
+    appWrap.style.display = "block";
+  }else{
+    loginScreen.style.display = "flex";
+    appWrap.style.display = "none";
+  }
+});
+</script>
+ 
 </script>
 
 </html>
