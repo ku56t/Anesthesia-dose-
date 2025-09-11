@@ -467,7 +467,17 @@ const drugData = {
     reduce:"استعمل أقل تركيز وتجنّب الجرعات المتراكمة."
   }
 };
-
+/* معاملات تأثير الأمراض */
+const diseaseFactors = {
+  diabetes: 0.95,   // سكري
+  heart:   0.80,    // أمراض قلبية
+  lung:    0.85,    // أمراض رئوية
+  liver:   0.70,    // أمراض كبدية
+  kidney:  0.75,    // أمراض كلوية
+  allergy: 0.90,    // حساسية
+  obesity: 1.05     // سمنة مفرطة
+};
+  
 function calculateTotalDose(drugName, weightKg, ageYears, asaClass, diseases){
   const doc = drugData[drugName]; if(!doc) return null;
   const cat = ageCategory(ageYears); const perKg = avgDose(doc.dose[cat]);
