@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أكاديمية ANS الطبية — حساب الجرعات المتطور</title>
+    <meta name="description" content="تطبيق متقدم لحساب جرعات التخدير وإدارة السوائل والدم مع Firebase authentication">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Noto+Sans+Arabic:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, where, getDocs, updateDoc, deleteDoc, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Firebase configuration - إعدادات مشروع Firebase الخاص بك
+        const firebaseConfig = {
+            apiKey: "GOOGLE_API_KEY", // استبدل GOOGLE_API_KEY بمفتاح API الحقيقي
+            authDomain: "anesthesia-dose-262e3.firebaseapp.com",
+            projectId: "anesthesia-dose-262e3",
+            storageBucket: "anesthesia-dose-262e3.firebasestorage.app",
+            messagingSenderId: "602244448093",
+            appId: "1:602244448093:web:0a8d9905849126086ff2b4",
+            measurementId: "G-SCHMQFCK3J"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global variables
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseAuthFunctions = {
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            createUserWithEmailAndPassword
+        };
+        window.firebaseDbFunctions = {
+            doc, setDoc, getDoc, collection, addDoc, query, where, getDocs, updateDoc, deleteDoc, orderBy
+        };
+    </script>
+    
+    <style>
+        /* === CSS VARIABLES & BASE STYLES === */
+        :root {
+            --bg-dark: #071223;
+            --bg-dark-2: #0b3045;
+            --card: #0f2333;
+            --accent: #0a9bd6;
+            --accent-2: #11cdef;
+            --glass: rgba(255,255,255,0.04);
+            --success: #16a34a;
+            --danger: #ff5252;
+            --warning: #f59e0b;
+            --text: #e6f6ff;
+            --text-muted: #93c1d8;
+            --border: rgba(255,255,255,0.06);
+            --radius: 12px;
+            --font-sans: 'Cairo', 'Noto Sans Arabic', Tahoma, Arial, sans-serif;
+        }
+
+        /* Light Theme */
+        body.light {
+            --bg-dark: #f5f8fb;
+            --bg-dark-2: #ffffff;
+            --card: #ffffff;
+            --text: #052036;
+            --text-muted: #475569;
+            --border: #e6eef6;
+            --glass: rgba(0,0,0,0.02);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: var(--font-sans);
+            background: linear-gradient(180deg, var(--bg-dark), var(--bg-dark-2));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.35s, color 0.35s;
+            direction: rtl;
+        }
+
+        /* === LOGIN SCREEN === */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #071024 0%, #06293a 70%);
+        }
+
+        .login-container {
+            background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .login-title {
+            text-align: center;
+            color: #eaf6ff;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #eaf6ff;
+            font-family: var(--font-sans);
+            font-size: 16px;
+            direction: rtl;
+        }
+
+        .login-input::placeholder {
+            color: rgba(234, 246, 255, 0.7);
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(10, 155, 214, 0.3);
+        }
+
+        .login-btn {
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: var(--bg-dark);
+            cursor: pointer;
+            font-weight: 700;
+            font-family: var(--font-sans);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(10, 155, 214, 0.4);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-error {
+            color: var(--danger);
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .login-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(234, 246, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .login-toggle button {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+            font-family: var(--font-sans);
+        }
+
+        /* === MAIN APPLICATION === */
+        .app-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: none;
+        }
+
+        .main-card {
+            background: linear-gradient(180deg, var(--glass), rgba(255,255,255,0.01));
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* === HEADER === */
+        .header {
+            padding: 16px 24px;
+            text-align: center;
+            font-weight: 700;
+            background: linear-gradient(90deg, #072a40, #0a5f86);
+            color: white;
+            box-shadow: 0 6px 20px rgba(2,6,23,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            flex: 1;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-family: var(--font-sans);
+            font-size: 12px;
+        }
+
+        /* === NAVIGATION === */
+        .nav-container {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: var(--bg-dark);
+            cursor: pointer;
+            font-weight: 700;
+            min-width: 160px;
+            font-family: var(--font-sans);
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(10, 155, 214, 0.3);
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn.ghost:hover {
+            background: var(--glass);
+            border-color: var(--accent);
+        }
+
+        .btn.active {
+            opacity: 1;
+            background: linear-gradient(90deg, var(--accent-2), var(--accent));
+        }
+
+        .btn.inactive {
+            opacity: 0.7;
+        }
+
+        .btn.danger {
+            background: linear-gradient(90deg, var(--danger), #ff7676);
+        }
+
+        /* === PANELS === */
+        .panel {
+            padding: 24px;
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .panel-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 24px;
+            text-align: right;
+        }
+
+        /* === FORMS === */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 1024px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--glass);
+            color: var(--text);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            transition: all 0.3s;
+            direction: rtl;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(10, 155, 214, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* === RESULTS === */
+        .result-box {
+            background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.2));
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            min-height: 120px;
+        }
+
+        .result-box.success {
+            border-color: var(--success);
+            background: linear-gradient(180deg, rgba(22,163,74,0.1), rgba(22,163,74,0.05));
+        }
+
+        .result-box.warning {
+            border-color: var(--warning);
+            background: linear-gradient(180deg, rgba(245,158,11,0.1), rgba(245,158,11,0.05));
+        }
+
+        .result-box.error {
+            border-color: var(--danger);
+            background: linear-gradient(180deg, rgba(255,82,82,0.1), rgba(255,82,82,0.05));
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .result-unit {
+            font-size: 1rem;
+            margin-right: 8px;
+            color: var(--text-muted);
+        }
+
+        .result-details {
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* === USER MANAGEMENT TABLE === */
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--glass);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .users-table th {
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+        }
+
+        .users-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .user-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(22,163,74,0.2);
+            color: var(--success);
+        }
+
+        .status-blocked {
+            background: rgba(255,82,82,0.2);
+            color: var(--danger);
+        }
+
+        .status-owner {
+            background: rgba(245,158,11,0.2);
+            color: var(--warning);
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === UTILITIES === */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-muted { color: var(--text-muted); }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .text-danger { color: var(--danger); }
+        .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+        .flex-1 { flex: 1; }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                min-width: 0;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .users-table {
+                font-size: 12px;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-container">
+            <div class="login-title">🏥 أكاديمية ANS الطبية</div>
+            
+            <div id="login-form" class="login-form">
+                <input type="email" class="login-input" id="login-email" placeholder="البريد الإلكتروني" required>
+                <input type="password" class="login-input" id="login-password" placeholder="كلمة المرور" required>
+                <button class="login-btn" id="login-btn" onclick="handleLogin()">تسجيل الدخول</button>
+                <div id="login-error" class="login-error hidden"></div>
+                
+                <div class="login-toggle">
+                    ليس لديك حساب؟ <button onclick="toggleLoginMode()">إنشاء حساب جديد</button>
+                </div>
+            </div>
+            
+            <div id="register-form" class="login-form hidden">
+                <input type="text" class="login-input" id="register-name" placeholder="الاسم الكامل" required>
+                <input type="email" class="login-input" id="register-email" placeholder="البريد الإلكتروني" required>
+                <input type="password" class="login-input" id="register-password" placeholder="كلمة المرور (6 أحرف على الأقل)" required>
+                <input type="password" class="login-input" id="register-confirm" placeholder="تأكيد كلمة المرور" required>
+                <button class="login-btn" id="register-btn" onclick="handleRegister()">إنشاء حساب</button>
+                <div id="register-error" class="login-error hidden"></div>
+                
+                <div class="login-toggle">
+                    لديك حساب بالفعل؟ <button onclick="toggleLoginMode()">تسجيل الدخول</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION -->
+    <div class="app-container" id="app">
+        <div class="main-card">
+            <!-- HEADER -->
+            <div class="header">
+                <h1>🏥 أكاديمية ANS الطبية — حساب الجرعات المتطور</h1>
+                <div class="user-info">
+                    <span id="user-name">المستخدم</span>
+                    <span id="user-id" class="text-muted"></span>
+                    <button class="logout-btn" onclick="handleLogout()">تسجيل خروج</button>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <div class="nav-container">
+                <div class="nav-buttons">
+                    <button class="btn active" onclick="showPanel('dose')">💉 حساب الجرعات</button>
+                    <button class="btn inactive" onclick="showPanel('fluids')">💧 السوائل والدم</button>
+                    <button class="btn inactive" onclick="showPanel('airway')">🫁 اللارنغوسكوب / ETT</button>
+                    <button class="btn inactive" id="admin-btn" onclick="showPanel('admin')" style="display:none">👑 لوحة المالك</button>
+                    <button class="btn ghost" onclick="showPanel('about')">ℹ️ حول التطبيق</button>
+                    <button class="btn ghost" onclick="toggleTheme()">🌙 تبديل الوضع</button>
+                </div>
+            </div>
+
+            <!-- DOSE CALCULATION PANEL -->
+            <div id="dose-panel" class="panel active">
+                <h2 class="panel-title">💉 حساب جرعات التخدير</h2>
+                
+                <div class="form-grid">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">اسم المريض</label>
+                            <input type="text" class="form-input" id="dose-patient-name" placeholder="أدخل اسم المريض">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">الوزن (كغ)</label>
+                            <input type="number" class="form-input" id="dose-weight" placeholder="مثال: 70" min="0.5" max="200" step="0.1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">العمر</label>
+                            <div class="form-row">
+                                <input type="number" class="form-input flex-1" id="dose-age" placeholder="مثال: 40" min="0" max="120">
+                                <select class="form-select" id="dose-age-unit" style="width:120px">
+                                    <option value="years">سنوات</option>
+                                    <option value="months">أشهر</option>
+                                    <option value="days">أيام</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">اختر نوع المخدر</label>
+                            <select class="form-select" id="dose-drug">
+                                <option value="">-- اختر المخدر --</option>
+                                <option value="propofol">Propofol (بروبوفول)</option>
+                                <option value="midazolam">Midazolam (ميدازولام)</option>
+                                <option value="fentanyl">Fentanyl (فنتانيل)</option>
+                                <option value="morphine">Morphine (مورفين)</option>
+                                <option value="ketamine">Ketamine (كيتامين)</option>
+                                <option value="atracurium">Atracurium (أتراكوريوم)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-controls">
+                            <button class="btn" onclick="calculateDose()">احسب الجرعة</button>
+                            <button class="btn ghost" onclick="clearDoseForm()">🗑️ مسح البيانات</button>
+                        </div>
+
+                        <div class="text-muted mt-2" style="font-size:12px">
+                            ⚠️ تنبيه: النتائج تقريبية لأغراض تعليمية. يجب مراجعة الطبيب المختص دائماً.
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div id="dose-result" class="result-box">
+                            <strong>النتيجة ستظهر هنا</strong>
+                            <p class="text-muted mt-2">قم بإدخال البيانات واختيار المخدر للحصول على النتيجة</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLUIDS CALCULATION PANEL -->
+            <div id="fluids-panel" class="panel">
+                <h2 class="panel-title">💧 حساب السوائل والدم</h2>
+                
+                <div class="form-grid">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">اسم المريض</label>
+                            <input type="text" class="form-input" id="fluid-patient-name" placeholder="أدخل اسم المريض">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">الوزن (كغ)</label>
+                            <input type="number" class="form-input" id="fluid-weight" placeholder="مثال: 70" min="0.5" max="200" step="0.1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">مدة العملية (ساعات)</label>
+                            <input type="number" class="form-input" id="fluid-duration" placeholder="مثال: 2" min="0.5" max="24" step="0.5">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">نوع العملية</label>
+                            <select class="form-select" id="fluid-surgery-type">
+                                <option value="">-- اختر نوع العملية --</option>
+                                <option value="minor">عملية صغرى</option>
+                                <option value="moderate">عملية متوسطة</option>
+                                <option value="major">عملية كبرى</option>
+                                <option value="emergency">عملية طوارئ</option>
+                            </select>
+                        </div>
+
+                        <div class="form-controls">
+                            <button class="btn" onclick="calculateFluids()">احسب السوائل</button>
+                            <button class="btn ghost" onclick="clearFluidForm()">🗑️ مسح البيانات</button>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div id="fluid-result" class="result-box">
+                            <strong>نتائج حساب السوائل</strong>
+                            <p class="text-muted mt-2">قم بإدخال البيانات للحصول على النتائج</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AIRWAY PANEL -->
+            <div id="airway-panel" class="panel">
+                <h2 class="panel-title">🫁 اللارنغوسكوب وأنبوب القصبة الهوائية</h2>
+                
+                <div class="form-grid">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">اسم المريض</label>
+                            <input type="text" class="form-input" id="airway-patient-name" placeholder="أدخل اسم المريض">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">العمر (سنوات)</label>
+                            <input type="number" class="form-input" id="airway-age" placeholder="مثال: 40" min="0" max="120">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">الوزن (كغ)</label>
+                            <input type="number" class="form-input" id="airway-weight" placeholder="مثال: 70" min="0.5" max="200" step="0.1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">الجنس</label>
+                            <select class="form-select" id="airway-gender">
+                                <option value="">-- اختر الجنس --</option>
+                                <option value="male">ذكر</option>
+                                <option value="female">أنثى</option>
+                            </select>
+                        </div>
+
+                        <div class="form-controls">
+                            <button class="btn" onclick="calculateAirway()">احسب معدات مجرى الهواء</button>
+                            <button class="btn ghost" onclick="clearAirwayForm()">🗑️ مسح البيانات</button>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div id="airway-result" class="result-box">
+                            <strong>معدات مجرى الهواء الموصى بها</strong>
+                            <p class="text-muted mt-2">قم بإدخال البيانات للحصول على التوصيات</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN PANEL -->
+            <div id="admin-panel" class="panel">
+                <h2 class="panel-title">👑 لوحة تحكم المالك</h2>
+                
+                <div class="form-grid">
+                    <div class="form-section">
+                        <div>
+                            <h3>📊 إحصائيات عامة</h3>
+                            <div class="result-box success">
+                                <div class="result-value" id="total-users">0</div>
+                                <div class="result-unit">إجمالي المستخدمين</div>
+                                <div class="result-value" id="active-users">0</div>
+                                <div class="result-unit">المستخدمين النشطين</div>
+                                <div class="result-value" id="total-calculations">0</div>
+                                <div class="result-unit">إجمالي الحسابات</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3>🛠️ أدوات الإدارة</h3>
+                            <div class="form-controls">
+                                <button class="btn" onclick="refreshUsersList()">🔄 تحديث قائمة المستخدمين</button>
+                                <button class="btn" onclick="exportAllData()">📤 تصدير جميع البيانات</button>
+                                <button class="btn danger" onclick="clearAllSystemData()">🗑️ مسح جميع بيانات النظام</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div>
+                            <h3>👥 إدارة المستخدمين</h3>
+                            <div id="users-list">
+                                <table class="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID المستخدم</th>
+                                            <th>الاسم</th>
+                                            <th>البريد الإلكتروني</th>
+                                            <th>الحالة</th>
+                                            <th>آخر تسجيل دخول</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-tbody">
+                                        <!-- Users will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABOUT PANEL -->
+            <div id="about-panel" class="panel">
+                <h2 class="panel-title">ℹ️ حول التطبيق</h2>
+                
+                <div class="form-grid">
+                    <div class="form-section">
+                        <div>
+                            <h3>🏥 أكاديمية ANS الطبية</h3>
+                            <p class="text-muted mb-4">
+                                تطبيق متقدم لحساب جرعات التخدير وإدارة السوائل والدم، مع نظام Firebase للمصادقة وإدارة المستخدمين.
+                            </p>
+
+                            <h4>المميزات الرئيسية:</h4>
+                            <ul class="text-muted" style="line-height: 1.6">
+                                <li>• حساب دقيق لجرعات أدوية التخدير المختلفة</li>
+                                <li>• حساب متطلبات السوائل أثناء العمليات</li>
+                                <li>• توصيات معدات مجرى الهواء (ETT & Laryngoscope)</li>
+                                <li>• نظام مصادقة آمن مع Firebase</li>
+                                <li>• لوحة تحكم متقدمة للمالك</li>
+                                <li>• واجهة عربية بالكامل مع دعم RTL</li>
+                                <li>• وضع مظلم وفاتح قابل للتبديل</li>
+                            </ul>
+
+                            <h4 class="mt-4">فريق التطوير:</h4>
+                            <div class="result-box">
+                                <p><strong>منظم المشروع:</strong> مصطفى أحمد عبد شكير (@871c)</p>
+                                <p><strong>مطور التطبيق:</strong> مصطفى مكي عبدالرضا (@ku56t)</p>
+                                <p><strong>الإشراف الأكاديمي:</strong> أكاديمية ANS الطبية</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div>
+                            <h3>📋 معلومات التطبيق</h3>
+                            <div class="result-box">
+                                <p><strong>الإصدار:</strong> 3.0.0 Firebase</p>
+                                <p><strong>تاريخ الإصدار:</strong> يناير 2024</p>
+                                <p><strong>نوع الترخيص:</strong> تعليمي - أكاديمية ANS</p>
+                                <p><strong>اللغة:</strong> العربية (RTL)</p>
+                                <p><strong>المصادقة:</strong> Firebase Authentication</p>
+                                <p><strong>قاعدة البيانات:</strong> Firebase Firestore</p>
+                                <p><strong>التقنيات:</strong> HTML5, CSS3, JavaScript ES6+, Firebase</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-warning">⚠️ تنبيه مهم</h3>
+                            <div class="result-box warning">
+                                <strong>تنبيه طبي:</strong> هذا التطبيق مخصص للأغراض التعليمية والمرجعية فقط. جميع النتائج تقريبية ويجب مراجعة الطبيب المختص أو المرجع الطبي المعتمد قبل تطبيق أي جرعة على المرضى.
+                                <br><br>
+                                <strong>المسؤولية:</strong> لا يتحمل مطورو التطبيق أي مسؤولية عن الاستخدام الخاطئ للنتائج.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="footer" style="padding: 16px 24px; text-align: center; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--border);">
+                <p>© 2024 أكاديمية ANS الطبية - جميع الحقوق محفوظة</p>
+                <p>تطبيق تعليمي متخصص في حساب جرعات التخدير مع Firebase Authentication</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === GLOBAL VARIABLES ===
+        let currentUser = null;
+        let userData = {};
+        let isLoginMode = true;
+
+        // === DRUG DATABASE ===
+        const drugDatabase = {
+            propofol: {
+                name: 'Propofol (بروبوفول)',
+                induction: { dose: '2-2.5', unit: 'mg/kg', range: '1.5-3' },
+                maintenance: { dose: '100-200', unit: 'mcg/kg/min', range: '50-300' },
+                pediatric: { dose: '2.5-3.5', unit: 'mg/kg', range: '2-4' },
+                sideEffects: ['هبوط في ضغط الدم', 'بطء في القلب', 'ألم في موقع الحقن', 'توقف التنفس'],
+                contraindications: ['حساسية من البيض أو الصويا', 'عدم استقرار الدورة الدموية'],
+                onset: '30-60 ثانية',
+                duration: '5-10 دقائق'
+            },
+            midazolam: {
+                name: 'Midazolam (ميدازولام)',
+                induction: { dose: '0.1-0.2', unit: 'mg/kg', range: '0.05-0.3' },
+                maintenance: { dose: '0.05-0.1', unit: 'mg/kg/hr', range: '0.02-0.2' },
+                pediatric: { dose: '0.1-0.15', unit: 'mg/kg', range: '0.05-0.2' },
+                sideEffects: ['نعاس', 'دوخة', 'فقدان ذاكرة مؤقت', 'هبوط تنفسي خفيف'],
+                contraindications: ['حساسية من البنزوديازيبين', 'الزرق الضيق الزاوية'],
+                onset: '1-3 دقائق',
+                duration: '30-60 دقيقة'
+            },
+            fentanyl: {
+                name: 'Fentanyl (فنتانيل)',
+                induction: { dose: '2-5', unit: 'mcg/kg', range: '1-10' },
+                maintenance: { dose: '1-3', unit: 'mcg/kg/hr', range: '0.5-5' },
+                pediatric: { dose: '1-3', unit: 'mcg/kg', range: '0.5-5' },
+                sideEffects: ['هبوط تنفسي', 'غثيان وقيء', 'حكة', 'تصلب عضلي'],
+                contraindications: ['حساسية من الأفيونات', 'إصابة الرأس الشديدة'],
+                onset: '1-2 دقيقة',
+                duration: '30-60 دقيقة'
+            },
+            morphine: {
+                name: 'Morphine (مورفين)',
+                induction: { dose: '0.1-0.2', unit: 'mg/kg', range: '0.05-0.3' },
+                maintenance: { dose: '0.02-0.05', unit: 'mg/kg/hr', range: '0.01-0.1' },
+                pediatric: { dose: '0.05-0.1', unit: 'mg/kg', range: '0.02-0.15' },
+                sideEffects: ['هبوط تنفسي', 'إمساك', 'غثيان وقيء', 'حكة'],
+                contraindications: ['حساسية من الأفيونات', 'الربو الحاد'],
+                onset: '5-10 دقائق',
+                duration: '2-4 ساعات'
+            },
+            ketamine: {
+                name: 'Ketamine (كيتامين)',
+                induction: { dose: '1-2', unit: 'mg/kg IV', range: '0.5-3' },
+                maintenance: { dose: '0.5-1', unit: 'mg/kg/hr', range: '0.2-2' },
+                pediatric: { dose: '1-2', unit: 'mg/kg', range: '0.5-3' },
+                sideEffects: ['هلوسة', 'أحلام مزعجة', 'ارتفاع ضغط الدم', 'زيادة إفراز اللعاب'],
+                contraindications: ['ارتفاع ضغط الدم غير المسيطر عليه', 'أمراض القلب التاجية'],
+                onset: '30-60 ثانية',
+                duration: '5-15 دقيقة'
+            },
+            atracurium: {
+                name: 'Atracurium (أتراكوريوم)',
+                induction: { dose: '0.4-0.5', unit: 'mg/kg', range: '0.3-0.6' },
+                pediatric: { dose: '0.3-0.4', unit: 'mg/kg', range: '0.2-0.5' },
+                sideEffects: ['تحرر الهيستامين', 'احمرار الجلد', 'هبوط ضغط خفيف'],
+                contraindications: ['حساسية من الباراكوات', 'وهن العضلات الشديد'],
+                onset: '2-3 دقائق',
+                duration: '20-40 دقيقة'
+            }
+        };
+
+        // === INITIALIZATION ===
+        window.onload = function() {
+            // Check authentication state
+            window.firebaseAuthFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
+                if (user) {
+                    handleUserLogin(user);
+                } else {
+                    showLoginScreen();
+                }
+            });
+        };
+
+        // === AUTHENTICATION FUNCTIONS ===
+        function showLoginScreen() {
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+        }
+
+        function hideLoginScreen() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        }
+
+        function toggleLoginMode() {
+            isLoginMode = !isLoginMode;
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            
+            if (isLoginMode) {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            }
+            
+            // Clear errors
+            clearErrors();
+        }
+
+        function clearErrors() {
+            document.getElementById('login-error').classList.add('hidden');
+            document.getElementById('register-error').classList.add('hidden');
+        }
+
+        function showError(type, message) {
+            const errorElement = document.getElementById(type + '-error');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (!email || !password) {
+                showError('login', 'يرجى إدخال البريد الإلكتروني وكلمة المرور');
+                return;
+            }
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'جاري تسجيل الدخول...';
+            clearErrors();
+            
+            try {
+                const userCredential = await window.firebaseAuthFunctions.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+                // User will be handled by onAuthStateChanged
+            } catch (error) {
+                console.error('Login error:', error);
+                let errorMessage = 'حدث خطأ في تسجيل الدخول';
+                
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'البريد الإلكتروني غير مسجل';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'كلمة المرور غير صحيحة';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'البريد الإلكتروني غير صحيح';
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage = 'هذا الحساب معطل. تواصل مع الإدارة';
+                        break;
+                }
+                
+                showError('login', errorMessage);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'تسجيل الدخول';
+            }
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm').value;
+            const registerBtn = document.getElementById('register-btn');
+            
+            if (!name || !email || !password || !confirmPassword) {
+                showError('register', 'يرجى إكمال جميع البيانات');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('register', 'كلمتا المرور غير متطابقتين');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError('register', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+                return;
+            }
+            
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'جاري إنشاء الحساب...';
+            clearErrors();
+            
+            try {
+                const userCredential = await window.firebaseAuthFunctions.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+                const user = userCredential.user;
+                
+                // Create user profile in Firestore
+                await createUserProfile(user, name);
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                let errorMessage = 'حدث خطأ في إنشاء الحساب';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'البريد الإلكتروني مستخدم بالفعل';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'البريد الإلكتروني غير صحيح';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'كلمة المرور ضعيفة جداً';
+                        break;
+                }
+                
+                showError('register', errorMessage);
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'إنشاء حساب';
+            }
+        }
+
+        async function createUserProfile(user, displayName) {
+            try {
+                // Generate user ID
+                const usersSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'users')
+                );
+                const userCount = usersSnapshot.size;
+                const userId = `ANS${String(userCount + 1).padStart(3, '0')}`;
+                
+                // Determine if this is the owner
+                const isOwner = user.email === 'bama47686@gmail.com';
+                
+                const userProfile = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: displayName,
+                    userId: userId,
+                    role: isOwner ? 'owner' : 'user',
+                    isBlocked: false,
+                    createdAt: new Date(),
+                    lastLogin: new Date(),
+                    calculationsCount: 0
+                };
+                
+                await window.firebaseDbFunctions.setDoc(
+                    window.firebaseDbFunctions.doc(window.firebaseDb, 'users', user.uid),
+                    userProfile
+                );
+                
+                console.log('User profile created successfully');
+            } catch (error) {
+                console.error('Error creating user profile:', error);
+            }
+        }
+
+        async function handleUserLogin(user) {
+            try {
+                // Get user profile from Firestore
+                const userDocRef = window.firebaseDbFunctions.doc(window.firebaseDb, 'users', user.uid);
+                const userDoc = await window.firebaseDbFunctions.getDoc(userDocRef);
+                
+                if (userDoc.exists()) {
+                    userData = userDoc.data();
+                    
+                    // Check if user is blocked
+                    if (userData.isBlocked && userData.role !== 'owner') {
+                        alert('حسابك معطل. تواصل مع الإدارة.');
+                        await handleLogout();
+                        return;
+                    }
+                    
+                    // Update last login
+                    await window.firebaseDbFunctions.updateDoc(userDocRef, {
+                        lastLogin: new Date()
+                    });
+                    
+                } else {
+                    // Create profile for existing users who don't have one
+                    await createUserProfile(user, user.email.split('@')[0]);
+                    const updatedDoc = await window.firebaseDbFunctions.getDoc(userDocRef);
+                    userData = updatedDoc.data();
+                }
+                
+                currentUser = user;
+                
+                // Update UI
+                document.getElementById('user-name').textContent = userData.displayName || user.email;
+                document.getElementById('user-id').textContent = `(${userData.userId})`;
+                
+                // Show admin panel if owner
+                if (userData.role === 'owner') {
+                    document.getElementById('admin-btn').style.display = 'block';
+                }
+                
+                hideLoginScreen();
+                
+            } catch (error) {
+                console.error('Error handling user login:', error);
+                alert('حدث خطأ في تحميل بيانات المستخدم');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await window.firebaseAuthFunctions.signOut(window.firebaseAuth);
+                currentUser = null;
+                userData = {};
+                document.getElementById('admin-btn').style.display = 'none';
+                showLoginScreen();
+            } catch (error) {
+                console.error('Error signing out:', error);
+                alert('حدث خطأ في تسجيل الخروج');
+            }
+        }
+
+        // === PANEL MANAGEMENT ===
+        function showPanel(panelId) {
+            // Hide all panels
+            const panels = document.querySelectorAll('.panel');
+            panels.forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Show selected panel
+            document.getElementById(panelId + '-panel').classList.add('active');
+
+            // Update button states
+            const buttons = document.querySelectorAll('.nav-buttons .btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            });
+
+            // Find and activate the clicked button
+            const activeButton = Array.from(buttons).find(btn => 
+                btn.textContent.includes(getPanelTitle(panelId)) || btn.getAttribute('onclick').includes(panelId)
+            );
+            if (activeButton) {
+                activeButton.classList.remove('inactive');
+                activeButton.classList.add('active');
+            }
+            
+            // Load admin data if admin panel
+            if (panelId === 'admin' && userData.role === 'owner') {
+                loadAdminData();
+            }
+        }
+
+        function getPanelTitle(panelId) {
+            const titles = {
+                dose: 'حساب الجرعات',
+                fluids: 'السوائل والدم',
+                airway: 'اللارنغوسكوب',
+                admin: 'لوحة المالك',
+                about: 'حول التطبيق'
+            };
+            return titles[panelId] || '';
+        }
+
+        // === THEME MANAGEMENT ===
+        function toggleTheme() {
+            const body = document.body;
+            const isLight = body.classList.contains('light');
+            
+            if (isLight) {
+                body.classList.remove('light');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light');
+        }
+
+        // === CALCULATION FUNCTIONS ===
+        async function calculateDose() {
+            const patientName = document.getElementById('dose-patient-name').value;
+            const weight = parseFloat(document.getElementById('dose-weight').value);
+            const age = parseFloat(document.getElementById('dose-age').value);
+            const ageUnit = document.getElementById('dose-age-unit').value;
+            const drugKey = document.getElementById('dose-drug').value;
+
+            const resultDiv = document.getElementById('dose-result');
+
+            // Validation
+            if (!patientName || !weight || !age || !drugKey) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '<div class="text-danger"><strong>خطأ:</strong> يرجى إكمال جميع البيانات المطلوبة</div>';
+                return;
+            }
+
+            if (weight < 0.5 || weight > 200) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '<div class="text-danger"><strong>خطأ:</strong> الوزن يجب أن يكون بين 0.5 و 200 كيلوجرام</div>';
+                return;
+            }
+
+            // Get drug info
+            const drug = drugDatabase[drugKey];
+            if (!drug) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '<div class="text-danger"><strong>خطأ:</strong> دواء غير صحيح</div>';
+                return;
+            }
+
+            // Convert age to years
+            let ageInYears = age;
+            if (ageUnit === 'months') {
+                ageInYears = age / 12;
+            } else if (ageUnit === 'days') {
+                ageInYears = age / 365;
+            }
+
+            // Calculate dose
+            const isPediatric = ageInYears < 18;
+            const dosing = isPediatric ? drug.pediatric : drug.induction;
+            
+            // Get base dose (use first value if range)
+            const baseDose = parseFloat(dosing.dose.split('-')[0]);
+            
+            // Calculate initial dose
+            let calculatedDose = baseDose * weight;
+            
+            // Age adjustment
+            if (ageInYears > 65) {
+                calculatedDose *= 0.8;
+            }
+
+            // Round result
+            const finalDose = Math.round(calculatedDose * 100) / 100;
+
+            // Display result
+            resultDiv.className = 'result-box success';
+            resultDiv.innerHTML = `
+                <div class="result-value">${finalDose}</div>
+                <div class="result-unit">${dosing.unit}</div>
+                <div class="result-details">
+                    <div><strong>المريض:</strong> ${patientName}</div>
+                    <div><strong>الوزن:</strong> ${weight} كغ</div>
+                    <div><strong>العمر:</strong> ${age} ${ageUnit === 'years' ? 'سنة' : ageUnit === 'months' ? 'شهر' : 'يوم'}</div>
+                    <div><strong>بداية المفعول:</strong> ${drug.onset}</div>
+                    <div><strong>مدة المفعول:</strong> ${drug.duration}</div>
+                </div>
+            `;
+
+            // Save calculation to Firebase
+            try {
+                await window.firebaseDbFunctions.addDoc(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'calculations'),
+                    {
+                        userId: currentUser.uid,
+                        type: 'dose',
+                        patientName: patientName,
+                        data: {
+                            weight, age, ageUnit, drug: drugKey
+                        },
+                        result: {
+                            dose: finalDose,
+                            unit: dosing.unit,
+                            drug: drug.name
+                        },
+                        createdAt: new Date()
+                    }
+                );
+                
+                // Update user's calculations count
+                const userDocRef = window.firebaseDbFunctions.doc(window.firebaseDb, 'users', currentUser.uid);
+                await window.firebaseDbFunctions.updateDoc(userDocRef, {
+                    calculationsCount: (userData.calculationsCount || 0) + 1
+                });
+                
+            } catch (error) {
+                console.error('Error saving calculation:', error);
+            }
+        }
+
+        async function calculateFluids() {
+            const patientName = document.getElementById('fluid-patient-name').value;
+            const weight = parseFloat(document.getElementById('fluid-weight').value);
+            const duration = parseFloat(document.getElementById('fluid-duration').value);
+            const surgeryType = document.getElementById('fluid-surgery-type').value;
+
+            const resultDiv = document.getElementById('fluid-result');
+
+            // Validation
+            if (!patientName || !weight || !duration || !surgeryType) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '<div class="text-danger"><strong>خطأ:</strong> يرجى إكمال جميع البيانات المطلوبة</div>';
+                return;
+            }
+
+            // Calculate maintenance fluids (Holiday-Segar method)
+            let maintenanceFluid = 0;
+            if (weight <= 10) {
+                maintenanceFluid = weight * 100; // 100 ml/kg for first 10 kg
+            } else if (weight <= 20) {
+                maintenanceFluid = 1000 + (weight - 10) * 50; // + 50 ml/kg for next 10 kg
+            } else {
+                maintenanceFluid = 1500 + (weight - 20) * 20; // + 20 ml/kg for remaining weight
+            }
+
+            // Convert to hourly rate
+            const maintenancePerHour = Math.round(maintenanceFluid / 24);
+
+            // Calculate replacement fluids based on surgery type
+            const replacementRates = {
+                'minor': 2, // ml/kg/hr
+                'moderate': 4,
+                'major': 6,
+                'emergency': 8
+            };
+
+            const replacementFluid = Math.round(weight * (replacementRates[surgeryType] || 2));
+
+            // Calculate total fluid requirement
+            const totalFluidPerHour = maintenancePerHour + replacementFluid;
+            const totalFluidForSurgery = Math.round(totalFluidPerHour * duration);
+
+            // Display result
+            resultDiv.className = 'result-box success';
+            resultDiv.innerHTML = `
+                <div class="result-value">${totalFluidPerHour}</div>
+                <div class="result-unit">مل/ساعة (إجمالي السوائل)</div>
+                <div class="result-value">${totalFluidForSurgery}</div>
+                <div class="result-unit">مل (إجمالي العملية)</div>
+                <div class="result-details">
+                    <div><strong>المريض:</strong> ${patientName}</div>
+                    <div><strong>الوزن:</strong> ${weight} كغ</div>
+                    <div><strong>مدة العملية:</strong> ${duration} ساعة</div>
+                    <div><strong>نوع العملية:</strong> ${surgeryType}</div>
+                    <div><strong>السوائل الأساسية:</strong> ${maintenancePerHour} مل/ساعة</div>
+                    <div><strong>سوائل التعويض:</strong> ${replacementFluid} مل/ساعة</div>
+                </div>
+            `;
+
+            // Save calculation to Firebase
+            try {
+                await window.firebaseDbFunctions.addDoc(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'calculations'),
+                    {
+                        userId: currentUser.uid,
+                        type: 'fluids',
+                        patientName: patientName,
+                        data: {
+                            weight, duration, surgeryType
+                        },
+                        result: {
+                            totalPerHour: totalFluidPerHour,
+                            totalForSurgery: totalFluidForSurgery,
+                            maintenance: maintenancePerHour,
+                            replacement: replacementFluid
+                        },
+                        createdAt: new Date()
+                    }
+                );
+                
+            } catch (error) {
+                console.error('Error saving calculation:', error);
+            }
+        }
+
+        async function calculateAirway() {
+            const patientName = document.getElementById('airway-patient-name').value;
+            const age = parseFloat(document.getElementById('airway-age').value);
+            const weight = parseFloat(document.getElementById('airway-weight').value);
+            const gender = document.getElementById('airway-gender').value;
+
+            const resultDiv = document.getElementById('airway-result');
+
+            // Validation
+            if (!patientName || !age || !weight || !gender) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '<div class="text-danger"><strong>خطأ:</strong> يرجى إكمال جميع البيانات المطلوبة</div>';
+                return;
+            }
+
+            let ettSize, laryngoscopeSize, insertionDepth;
+
+            // Pediatric calculations (< 8 years)
+            if (age < 8) {
+                // ETT size for children: (age + 16) / 4
+                ettSize = (age + 16) / 4;
+                
+                // Laryngoscope blade size
+                if (age < 1) {
+                    laryngoscopeSize = '0-1 (مستقيم)';
+                } else if (age < 3) {
+                    laryngoscopeSize = '1-2 (مستقيم)';
+                } else {
+                    laryngoscopeSize = '2 (مستقيم أو منحني)';
+                }
+                
+                // Insertion depth: ETT size × 3
+                insertionDepth = ettSize * 3;
+                
+            } else {
+                // Adult calculations
+                if (gender === 'female') {
+                    ettSize = 7.0;
+                    laryngoscopeSize = '3 (منحني - Macintosh)';
+                    insertionDepth = 21;
+                } else {
+                    ettSize = 8.0;
+                    laryngoscopeSize = '3-4 (منحني - Macintosh)';
+                    insertionDepth = 23;
+                }
+            }
+
+            // Round ETT size to nearest 0.5
+            ettSize = Math.round(ettSize * 2) / 2;
+
+            // Display result
+            resultDiv.className = 'result-box success';
+            resultDiv.innerHTML = `
+                <div class="result-value">${ettSize}</div>
+                <div class="result-unit">مم (حجم أنبوب ETT)</div>
+                <div class="result-value">${insertionDepth}</div>
+                <div class="result-unit">سم (عمق الإدخال)</div>
+                <div class="result-details">
+                    <div><strong>المريض:</strong> ${patientName}</div>
+                    <div><strong>العمر:</strong> ${age} سنة</div>
+                    <div><strong>الوزن:</strong> ${weight} كغ</div>
+                    <div><strong>الجنس:</strong> ${gender === 'male' ? 'ذكر' : 'أنثى'}</div>
+                    <div><strong>نصل اللارنغوسكوب:</strong> ${laryngoscopeSize}</div>
+                </div>
+            `;
+
+            // Save calculation to Firebase
+            try {
+                await window.firebaseDbFunctions.addDoc(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'calculations'),
+                    {
+                        userId: currentUser.uid,
+                        type: 'airway',
+                        patientName: patientName,
+                        data: {
+                            age, weight, gender
+                        },
+                        result: {
+                            ettSize,
+                            laryngoscopeSize,
+                            insertionDepth
+                        },
+                        createdAt: new Date()
+                    }
+                );
+                
+            } catch (error) {
+                console.error('Error saving calculation:', error);
+            }
+        }
+
+        // === FORM CLEARING ===
+        function clearDoseForm() {
+            document.getElementById('dose-patient-name').value = '';
+            document.getElementById('dose-weight').value = '';
+            document.getElementById('dose-age').value = '';
+            document.getElementById('dose-age-unit').value = 'years';
+            document.getElementById('dose-drug').value = '';
+            
+            // Clear results
+            document.getElementById('dose-result').className = 'result-box';
+            document.getElementById('dose-result').innerHTML = '<strong>النتيجة ستظهر هنا</strong><p class="text-muted mt-2">قم بإدخال البيانات واختيار المخدر للحصول على النتيجة</p>';
+        }
+
+        function clearFluidForm() {
+            document.getElementById('fluid-patient-name').value = '';
+            document.getElementById('fluid-weight').value = '';
+            document.getElementById('fluid-duration').value = '';
+            document.getElementById('fluid-surgery-type').value = '';
+            
+            // Clear results
+            document.getElementById('fluid-result').className = 'result-box';
+            document.getElementById('fluid-result').innerHTML = '<strong>نتائج حساب السوائل</strong><p class="text-muted mt-2">قم بإدخال البيانات للحصول على النتائج</p>';
+        }
+
+        function clearAirwayForm() {
+            document.getElementById('airway-patient-name').value = '';
+            document.getElementById('airway-age').value = '';
+            document.getElementById('airway-weight').value = '';
+            document.getElementById('airway-gender').value = '';
+            
+            // Clear results
+            document.getElementById('airway-result').className = 'result-box';
+            document.getElementById('airway-result').innerHTML = '<strong>معدات مجرى الهواء الموصى بها</strong><p class="text-muted mt-2">قم بإدخال البيانات للحصول على التوصيات</p>';
+        }
+
+        // === ADMIN FUNCTIONS ===
+        async function loadAdminData() {
+            if (userData.role !== 'owner') return;
+            
+            try {
+                // Get all users
+                const usersSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'users')
+                );
+                
+                // Get all calculations
+                const calculationsSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'calculations')
+                );
+                
+                const totalUsers = usersSnapshot.size;
+                const totalCalculations = calculationsSnapshot.size;
+                
+                // Calculate active users (logged in within last 30 days)
+                const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                let activeUsers = 0;
+                
+                // Update statistics
+                document.getElementById('total-users').textContent = totalUsers;
+                document.getElementById('active-users').textContent = activeUsers;
+                document.getElementById('total-calculations').textContent = totalCalculations;
+                
+                // Load users list
+                refreshUsersList();
+                
+            } catch (error) {
+                console.error('Error loading admin data:', error);
+            }
+        }
+
+        async function refreshUsersList() {
+            if (userData.role !== 'owner') return;
+            
+            try {
+                const usersSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'users')
+                );
+                
+                const tbody = document.getElementById('users-tbody');
+                tbody.innerHTML = '';
+                
+                usersSnapshot.forEach((doc) => {
+                    const user = doc.data();
+                    const row = document.createElement('tr');
+                    
+                    const statusClass = user.role === 'owner' ? 'status-owner' : 
+                                       user.isBlocked ? 'status-blocked' : 'status-active';
+                    const statusText = user.role === 'owner' ? 'مالك' : 
+                                      user.isBlocked ? 'محظور' : 'نشط';
+                    
+                    const lastLogin = user.lastLogin ? new Date(user.lastLogin.seconds * 1000).toLocaleDateString('ar-SA') : 'لم يسجل دخول';
+                    
+                    row.innerHTML = `
+                        <td>${user.userId}</td>
+                        <td>${user.displayName}</td>
+                        <td>${user.email}</td>
+                        <td><span class="user-status ${statusClass}">${statusText}</span></td>
+                        <td>${lastLogin}</td>
+                        <td>
+                            ${user.role !== 'owner' ? `
+                                <button class="btn ghost" style="min-width:80px; padding:4px 8px; font-size:12px" 
+                                        onclick="${user.isBlocked ? 'unblockUser' : 'blockUser'}('${doc.id}')">
+                                    ${user.isBlocked ? 'إلغاء حظر' : 'حظر'}
+                                </button>
+                            ` : '<span class="text-muted">المالك</span>'}
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading users list:', error);
+            }
+        }
+
+        async function blockUser(userId) {
+            if (userData.role !== 'owner') return;
+            
+            if (!confirm('هل أنت متأكد من حظر هذا المستخدم؟')) return;
+            
+            try {
+                const userDocRef = window.firebaseDbFunctions.doc(window.firebaseDb, 'users', userId);
+                await window.firebaseDbFunctions.updateDoc(userDocRef, {
+                    isBlocked: true
+                });
+                
+                alert('تم حظر المستخدم بنجاح');
+                refreshUsersList();
+                
+            } catch (error) {
+                console.error('Error blocking user:', error);
+                alert('حدث خطأ في حظر المستخدم');
+            }
+        }
+
+        async function unblockUser(userId) {
+            if (userData.role !== 'owner') return;
+            
+            if (!confirm('هل أنت متأكد من إلغاء حظر هذا المستخدم؟')) return;
+            
+            try {
+                const userDocRef = window.firebaseDbFunctions.doc(window.firebaseDb, 'users', userId);
+                await window.firebaseDbFunctions.updateDoc(userDocRef, {
+                    isBlocked: false
+                });
+                
+                alert('تم إلغاء حظر المستخدم بنجاح');
+                refreshUsersList();
+                
+            } catch (error) {
+                console.error('Error unblocking user:', error);
+                alert('حدث خطأ في إلغاء حظر المستخدم');
+            }
+        }
+
+        async function exportAllData() {
+            if (userData.role !== 'owner') return;
+            
+            try {
+                // Get all data
+                const usersSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'users')
+                );
+                const calculationsSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'calculations')
+                );
+                
+                const users = [];
+                const calculations = [];
+                
+                usersSnapshot.forEach(doc => {
+                    users.push({ id: doc.id, ...doc.data() });
+                });
+                
+                calculationsSnapshot.forEach(doc => {
+                    calculations.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const exportData = {
+                    users,
+                    calculations,
+                    exportDate: new Date().toISOString(),
+                    totalUsers: users.length,
+                    totalCalculations: calculations.length
+                };
+                
+                // Download as JSON
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
+                    type: 'application/json' 
+                });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ans-medical-data-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                URL.revokeObjectURL(url);
+                alert('تم تصدير البيانات بنجاح!');
+                
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                alert('حدث خطأ في تصدير البيانات');
+            }
+        }
+
+        async function clearAllSystemData() {
+            if (userData.role !== 'owner') return;
+            
+            if (!confirm('هل أنت متأكد من حذف جميع بيانات النظام؟ هذا الإجراء لا يمكن التراجع عنه.\n\nسيتم حذف:\n- جميع المستخدمين (عدا المالك)\n- جميع الحسابات الطبية\n- جميع البيانات المحفوظة')) return;
+            
+            const confirmText = prompt('اكتب "حذف جميع البيانات" للتأكيد:');
+            if (confirmText !== 'حذف جميع البيانات') {
+                alert('تم إلغاء العملية');
+                return;
+            }
+            
+            try {
+                // Delete all calculations
+                const calculationsSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'calculations')
+                );
+                
+                for (const doc of calculationsSnapshot.docs) {
+                    await window.firebaseDbFunctions.deleteDoc(doc.ref);
+                }
+                
+                // Delete all users except owner
+                const usersSnapshot = await window.firebaseDbFunctions.getDocs(
+                    window.firebaseDbFunctions.collection(window.firebaseDb, 'users')
+                );
+                
+                for (const doc of usersSnapshot.docs) {
+                    const user = doc.data();
+                    if (user.role !== 'owner') {
+                        await window.firebaseDbFunctions.deleteDoc(doc.ref);
+                    }
+                }
+                
+                alert('تم حذف جميع بيانات النظام بنجاح!');
+                refreshUsersList();
+                loadAdminData();
+                
+            } catch (error) {
+                console.error('Error clearing system data:', error);
+                alert('حدث خطأ في حذف البيانات');
+            }
+        }
+
+        // === KEYBOARD SHORTCUTS ===
+        document.addEventListener('keydown', function(e) {
+            // Enter key for login
+            if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+                if (isLoginMode) {
+                    handleLogin();
+                } else {
+                    handleRegister();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
