@@ -612,6 +612,39 @@ onAuthStateChanged(auth, async (user)=> {
   }
 });
 
+  // إنشاء حساب يدوي للمستخدم العادي
+const signupBtn = document.getElementById('signupBtn');
+if (signupBtn) {
+  signupBtn.addEventListener('click', async ()=>{
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass  = document.getElementById('loginPass').value.trim();
+    if (!email || !pass) {
+      alert('أدخل البريد وكلمة المرور');
+      return;
+    }
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+      alert('تم إنشاء الحساب. يمكنك الآن تسجيل الدخول.');
+    } catch (err) {
+      alert('فشل إنشاء الحساب: ' + err.message);
+    }
+  });
+}
+
+// تسجيل الدخول عبر Google
+const googleLoginBtn = document.getElementById('googleLogin');
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener('click', async ()=>{
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      authModal.style.display = 'none';
+    } catch (err) {
+      alert('فشل تسجيل الدخول عبر Google: ' + err.message);
+    }
+  });
+}
+  
 // ---------------- Owner: users & history & stats ----------------
 async function populateUsersList(){
   const ul = document.getElementById('usersList');
